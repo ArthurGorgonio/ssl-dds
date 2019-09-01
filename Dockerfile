@@ -4,7 +4,7 @@ MAINTAINER Artem Klevtsov a.a.klevtsov@gmail.com
 
 ARG R_VERSION
 # Enviroment Variables
-ENV R_VERSION ${R_VERSION:-3.5.1}
+ENV R_VERSION ${R_VERSION:-3.6.1}
 ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
 # JAVA Variables
@@ -92,17 +92,17 @@ RUN apk --no-cache add \
 # Clean up
     rm -rf /usr/lib/R/library/translations && \
 # Installing the xgboost dependencies
-    R -e "install.packages(c('Matrix', 'data.table', 'magrittr', 'stringi'))" && \
+    R -e "install.packages(c('Matrix', 'data.table', 'devtools', 'magrittr', 'stringi'))" && \
 # Installing the xgboost for R
-    cd /tmp && git clone --recursive https://github.com/dmlc/xgboost && \
+    cd /tmp && git clone --recursive -b v0.81  https://github.com/dmlc/xgboost && \
     sed -i '/#define DMLC_LOG_STACK_TRACE 1/d' xgboost/dmlc-core/include/dmlc/base.h && \
     sed -i '/#define DMLC_LOG_STACK_TRACE 1/d' xgboost/rabit/include/dmlc/base.h && \
     cd xgboost/R-package && \
     R CMD INSTALL . && \
     cd ../../.. && \
-    rm -rf /tmp/* && \
+    rm -rf /tmp/*
 # Setup the dirs
-    mkdir -p /R/karliane/projeto_karliane/flexcon_c && \
+RUN mkdir -p /R/karliane/projeto_karliane/flexcon_c && \
     cd /R/karliane/projeto_karliane/flexcon_c && \
     mkdir ../bases
 
@@ -111,6 +111,8 @@ RUN apk --no-cache add \
 # COPY bases/ R/karliane/projeto_karliane/bases
 # Seting a workdir
 WORKDIR R/karliane/projeto_karliane/flexcon_c
+
+COPY . .
 
 # R Configuring JAVA enviroment
 RUN R CMD javareconf
