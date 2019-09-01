@@ -1,10 +1,10 @@
 # Check which samples in data_x_it have equal classes than data_1_it
 # Check in both matrixes if the confidence value are higger than thr_conf
 classCheck <- function(data_1_it, data_x_it, thr_conf) {
-  examples <- cleanVector(examples)
+  examples <- c()
   pos <- 0
-  xid <- cleanVector(xid)
-  ycl <- cleanVector(ycl)
+  xid <- c()
+  ycl <- c()
   lvls <- match(data_x_it$id, data_1_it$id)
   for (indice in 1:length(lvls)) {
     if ((as.character(data_1_it[lvls[indice], 1])
@@ -18,16 +18,16 @@ classCheck <- function(data_1_it, data_x_it, thr_conf) {
     }
   }
   examples <- data.frame(id = xid, cl = ycl)
-  return (examples)
+  return(examples)
 }
 
 # Check in both matrixes if one of confidences values are higger than thr_conf
 # The class of this samples is select observing the sum of the confidences or choose the most voted class
 confidenceCheck <- function(data_1_it, data_x_it, thr_conf) {
-  examples <- cleanVector(examples)
+  examples <- c()
   pos <- 0
-  xid <- cleanVector(xid)
-  ycl <- cleanVector(ycl)
+  xid <- c()
+  ycl <- c()
   lvls <- match(data_x_it$id, data_1_it$id)
   for (indice in 1:length(lvls)) {
     if ((as.character(data_1_it[lvls[indice], 1])
@@ -41,7 +41,7 @@ confidenceCheck <- function(data_1_it, data_x_it, thr_conf) {
     }
   }
   examples <- data.frame(id = xid, cl = ycl)
-  return (examples)
+  return(examples)
 }
 
 # Return the confusion matrix
@@ -52,36 +52,22 @@ confusionMatrix <- function(model) {
   type <- 'class'
   class_test_bd <- base_teste$class
   confusion <- table(predict(model, test_db, type), class_test_bd)
-  return (confusion)
+  return(confusion)
 }
 
 # Convert each sample in prob_preds in character
 convertProbPreds <- function(prob_preds) {
   aux <- sapply(prob_preds, is.factor)
   prob_preds[aux] <- lapply(prob_preds[aux], as.character)
-  return (prob_preds)
-}
-
-# Função para definir constantes ao longo do código
-# Function to define constants in all code
-defines <- function() {
-  classe <<- "class"
-  classifiers <<- c("naiveBayes", "rpartXse", "JRip", "IBk")
-  extention <<- ".csv"
-  funcs <<- c('func', 'f', 'f2', 'f2')
-  obj <<- c(learner(classifiers[1], list()),
-            learner(classifiers[2], list(se = 0.5)),
-            learner(classifiers[3], list()),
-            learner(classifiers[4], list(control = Weka_control(K = 3,
-                                                                X = TRUE))))
+  return(prob_preds)
 }
 
 # Check in both matrixes if both confidences values are higger than thr_conf
 # The class of this samples is select observing the sum of the confidences or choose the most voted class
 differentClassesCheck <- function(data_1_it, data_x_it, thr_conf, moda) {
   pos <- 0
-  xid <- cleanVector(xid)
-  ycl <- cleanVector(ycl)
+  xid <- c()
+  ycl <- c()
   lvls <- match(data_x_it$id, data_1_it$id)
   for (indice in 1:length(lvls)) {
     if ((as.character(data_1_it[lvls[indice], 1])
@@ -95,15 +81,15 @@ differentClassesCheck <- function(data_1_it, data_x_it, thr_conf, moda) {
     }
   }
   examples <- data.frame(id = xid, cl = ycl)
-  return (examples)
+  return(examples)
 }
 
 # Check in both matrixes if one of confidences values are higger than thr_conf
 # The class of this samples is select observing the sum of the confidences or choose the most voted class
 differentConfidencesCheck <- function(data_1_it, data_x_it, thr_conf, moda) {
   pos <- 0
-  xid <- cleanVector(xid)
-  ycl <- cleanVector(ycl)
+  xid <- c()
+  ycl <- c()
   lvls <- match(data_x_it$id, data_1_it$id)
   for (indice in 1:length(lvls)) {
     if ((as.character(data_1_it[lvls[indice], 1])
@@ -117,7 +103,7 @@ differentConfidencesCheck <- function(data_1_it, data_x_it, thr_conf, moda) {
     }
   }
   examples <- data.frame(id = xid, cl = ycl)
-  return (examples)
+  return(examples)
 }
 
 # FlexCon-C the base algorithm
@@ -135,22 +121,24 @@ flexConC <- function(learner, pred_func, min_exem_por_classe, limiar, method) {
   n_classes <- NROW(n_instancias_por_classe) - 1
   qtd_exemplos_rot <- 0
   total_rot <- 0
-  conj_treino <<- cleanVector(conj_treino)
+  conj_treino <<- c()
   treino_valido <<- FALSE
   classificar <- TRUE
   sup <- which(!is.na(data[, as.character(form[[2]])]))
-  id_conj_treino <- cleanVector(id_conj_treino)
-  id_conj_treino_antigo <- cleanVector(id_conj_treino_antigo)
+  id_conj_treino <- c()
+  id_conj_treino_antigo <- c()
   # FlexCon-C1 only
   if ((method == "1") || (method == "2")) {
-    moda <- matrix(data = rep(0, getLength(base_original$class)), ncol = length(levels(base_original$class)),
-                   nrow = NROW(base_original), byrow = TRUE, dimnames = list(row.names(base_original),
+    moda <- matrix(data = rep(0, length(base_original$class)),
+                   ncol = length(levels(base_original$class)),
+                   nrow = NROW(base_original), byrow = TRUE,
+                   dimnames = list(row.names(base_original),
                    sort(levels(base_original$class), decreasing = FALSE)))
   }
   # FlexCon-C2 only
   add_rot_superv <- FALSE
   repeat {
-    new_samples <- cleanVector(new_samples)
+    new_samples <- c()
     acertou <- 0
     it = it + 1
     if (qtd_exemplos_rot > 0) {
@@ -160,14 +148,14 @@ flexConC <- function(learner, pred_func, min_exem_por_classe, limiar, method) {
       classificar <- validClassification(treino_valido, id_conj_treino,
                                          id_conj_treino_antigo, data, n_classes,
                                          min_exem_por_classe)
-      if(classificar) {
+      if (classificar) {
         acc_local <- calcLocalAcc()
         thr_conf <- newConfidence(acc_local, limiar, thr_conf)
       }
     }
     model <- generateModel(learner, form, data, sup)
     prob_preds <- generateProbPreds(pred_func, model, data, sup)
-    switch (method,
+    switch(method,
             "1" = {
               moda <- storageSum(prob_preds, moda)
               new_samples <- flexConC1(prob_preds, thr_conf, moda, it)
@@ -191,7 +179,7 @@ flexConC <- function(learner, pred_func, min_exem_por_classe, limiar, method) {
       } else {
         new_data <- as.character(prob_preds[new_samples, 1])
       }
-      qtd_exemplos_rot <- getLength(new_data)
+      qtd_exemplos_rot <- length(new_data)
       total_rot <- total_rot + qtd_exemplos_rot
       acertou <- 0
       acerto <- (treinamento[(1:N)[-sup][new_samples], as.character(form[2])]
@@ -217,22 +205,22 @@ flexConC <- function(learner, pred_func, min_exem_por_classe, limiar, method) {
 }
 
 flexConC1 <- function(prob_preds, thr_conf, moda, it) {
-  if(it == 1) {
+  if (it == 1) {
     prob_preds_1_it <<- prob_preds
     new_samples <- which(prob_preds[ , 2] >= thr_conf)
     rotulados <- data.frame(id = prob_preds[new_samples, 3],
                             cl = prob_preds[new_samples, 1])
   } else {
     rotulados <- classCheck(prob_preds_1_it, prob_preds, thr_conf)
-    len_rotulados <- getLength(rotulados$id)
+    len_rotulados <- length(rotulados$id)
     if (len_rotulados == 0) {
       rotulados <- confidenceCheck(prob_preds_1_it, prob_preds, thr_conf)
-      len_rotulados <- getLength(rotulados$id)
+      len_rotulados <- length(rotulados$id)
       if (len_rotulados == 0) {
         rotulados <- differentClassesCheck(prob_preds_1_it, prob_preds,
                                            thr_conf, moda)
-        len_rotulados <- getLength(rotulados$id)
-        if(len_rotulados == 0) {
+        len_rotulados <- length(rotulados$id)
+        if (len_rotulados == 0) {
           rotulados <- differentConfidencesCheck(prob_preds_1_it, prob_preds,
                                                  thr_conf, moda)
         }
@@ -240,7 +228,7 @@ flexConC1 <- function(prob_preds, thr_conf, moda, it) {
     }
   }
   new_samples <- rotulados$id
-  return (new_samples)
+  return(new_samples)
 }
 
 # FlexCon-C2 funtion
