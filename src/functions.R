@@ -1,3 +1,19 @@
+# Calculate the acc value of the training samples
+calcLocalAcc <- function() {
+  if (c == 1) {
+    classifier <- naiveBayes(as.factor(class) ~ ., trainSet)
+  } else if (c == 2) {
+    classifier <- rpartXse(as.factor(class) ~ ., trainSet)
+  } else if (c == 3) {
+    classifier <- JRip(as.factor(class) ~ ., trainSet)
+  } else if (c == 4) {
+    classifier <- IBk(as.factor(class) ~ ., trainSet)
+  }
+  matriz <- table(predict(classifier, initialLabeledDB), initialLabeledDB$class)
+  localAcc <- ((sum(diag(matriz)) / length(initialLabeledDB$class)) * 100)
+  return(localAcc)
+}
+
 # Return the confusion matrix
 confusionMatrix <- function(model) {
   colunsNames <- colnames(testeDB)
@@ -33,9 +49,15 @@ getAcc <- function(matrix, all) {
   return(acc)
 }
 
-#' @description Void Function to load all global variables of the code
+#' @description Function to define constants in all code
 #'
-initGlobalVariables <- function() {
+defines <- function() {
+  classe <<- "class"
+  funcType <<- c("raw", "probability", "prob", "probability")
+  extention <<- ".csv"
+  obj <<- c(learner("naiveBayes", list()), learner("JRip", list()),
+            learner("rpartXse", list(se = 0.5)),
+            learner("IBk", list(control = Weka_control(K = 3, X = TRUE))))
   trainSet <<- c()
   training <<- c()
   accC1S <<- c()
@@ -90,7 +112,7 @@ newBase <- function(labeledDB, trainId){
 
 # Return the new confidence value changed by the cr value
 #cr=5 nem umas das condiçoes vao ser aceitas
-newConfidence <- function(localAcc, limiar, confValue) { 
+newConfidence <- function(localAcc, limiar, confValue) {
   if ((localAcc > (limiar + 1)) && ((confValue - cr / 100) > 0.0)) {
     confValue <- confValue - cr / 100
   } else if ((localAcc < (limiar - 1)) && ((confValue + cr / 100) <= 1)) {
@@ -176,7 +198,7 @@ supModel <- function(cl, initialLabeledDB){
 #' se o treino for válido, a função apenas atribui o conj de treinamento antigo
 #' ao novo conj. de treinamento e limpa o conj. antigo.
 #' se o treino não for válido, a função junta o conj de treinamento antigo com o
-#' novo e chama a funcao validTraining para validar se os dois conjuntos juntos 
+#' novo e chama a funcao validTraining para validar se os dois conjuntos juntos
 #' podem ser treinados.
 #'
 #' @param validTrainIt boolean for check if it's a valid train.

@@ -1,12 +1,12 @@
-#' @description Function to define constants in all code
+#' @description funtion to set a new k value for each dataset, the value is
+#'  the sqrt(number of samples)
 #'
-defines <- function() {
-  classe <<- "class"
-  funcType <<- c("raw", "prob", "probability", "probability")
-  extention <<- ".csv"
-  obj <<- c(learner("naiveBayes", list()), learner("JRip", list()),
-            learner("rpartXse", list(se = 0.5)),
-            learner("IBk", list(control = Weka_control(K = 3, X = TRUE))))
+#' @param database the current databese.
+#'
+attKValue <- function(database) {
+  param <- list(control = Weka_control(K = as.integer(sqrt(nrow(database))),
+                                       X = T))
+  obj[4] <<- c(learner("IBk", param))
 }
 
 #' @description Predicted values of all instances of the data

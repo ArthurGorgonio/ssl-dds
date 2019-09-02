@@ -5,6 +5,7 @@ classCheck <- function(data1It, dataXIt, confValue) {
   pos <- 0
   xId <- c()
   yCl <- c()
+  zConfPred <- c()
   lvls <- match(dataXIt$id, data1It$id)
   for (indice in 1:length(lvls)) {
     if ((as.character(data1It[lvls[indice], 1])
@@ -14,6 +15,7 @@ classCheck <- function(data1It, dataXIt, confValue) {
         pos <- pos + 1
         xId[pos] <- indice
         yCl[pos] <- dataXIt[indice, 1]
+        zConfPred[pos] <- dataXIt[indice, 2]
       }
     }
   }
@@ -28,6 +30,7 @@ confidenceCheck <- function(data1It, dataXIt, confValue) {
   pos <- 0
   xId <- c()
   yCl <- c()
+  zConfPred <- c()
   lvls <- match(dataXIt$id, data1It$id)
   for (indice in 1:length(lvls)) {
     if ((as.character(data1It[lvls[indice], 1])
@@ -37,6 +40,7 @@ confidenceCheck <- function(data1It, dataXIt, confValue) {
         pos <- pos + 1
         xId[pos] <- indice
         yCl[pos] <- dataXIt[indice, 1]
+        zConfPred[pos] <- dataXIt[indice, 2]
       }
     }
   }
@@ -50,6 +54,7 @@ differentClassesCheck <- function(data1It, dataXIt, confValue, moda) {
   pos <- 0
   xId <- c()
   yCl <- c()
+  zConfPred <- c()
   lvls <- match(dataXIt$id, data1It$id)
   for (indice in 1:length(lvls)) {
     if ((as.character(data1It[lvls[indice], 1])
@@ -59,6 +64,7 @@ differentClassesCheck <- function(data1It, dataXIt, confValue, moda) {
         pos <- pos + 1
         xId[pos] <- indice
         yCl[pos] <- searchClass(xId[pos], moda)
+        zConfPred[pos] <- dataXIt[indice, 2]
       }
     }
   }
@@ -72,6 +78,7 @@ differentConfidencesCheck <- function(data1It, dataXIt, confValue, moda) {
   pos <- 0
   xId <- c()
   yCl <- c()
+  zConfPred <- c()
   lvls <- match(dataXIt$id, data1It$id)
   for (indice in 1:length(lvls)) {
     if ((as.character(data1It[lvls[indice], 1])
@@ -81,6 +88,7 @@ differentConfidencesCheck <- function(data1It, dataXIt, confValue, moda) {
         pos <- pos + 1
         xId[pos] <- indice
         yCl[pos] <- searchClass(xId[pos], moda)
+        zConfPred[pos] <- dataXIt[indice, 2]
       }
     }
   }
@@ -100,7 +108,7 @@ flexConC <- function(learner, predFunc, minSamplesClass, limiar, method) {
   nSamplesClass <- ddply(data, ~class, summarise, samplesClass = length(class))
   nClass <- NROW(nSamplesClass) - 1
   lenLabeled <- 0
-  total_rot <- 0
+  totalLab <- 0
   trainSet <<- c()
   validTrain <<- FALSE
   classificar <- TRUE

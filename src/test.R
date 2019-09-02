@@ -1,19 +1,19 @@
 # data <- read.arff("elecNormNew.arff")
-# 
+#
 # par(mfrow = c(3, 3))
-# 
+#
 # colnames <- dimnames(data)[[2]]
-# 
+#
 # for (i in 1:9) {
 #   hist(as.numeric(data[, i]), main = colnames[i], probability = T)
 #   d <- density(as.numeric(data[,i]))
 #   lines(d, col = "red")
 # }
-# 
+#
 # for (i in 1:9) {
 #   barplot(as.numeric(data[,i]), main = colnames[i], probability = T)
 # }
-# 
+#
 # for (i in 1:9) {
 #   boxplot(as.numeric(data[,i]), main = colnames[i])
 # }
