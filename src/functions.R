@@ -1,19 +1,19 @@
 # Return the confusion matrix
 confusionMatrix <- function(model) {
-  coluns_names <- colnames(base_teste)
-  db_without_class <- match("class", coluns_names)
-  test_db <- base_teste[, -db_without_class]
-  type <- 'class'
-  class_test_bd <- base_teste$class
-  confusion <- table(predict(model, test_db, type), class_test_bd)
+  colunsNames <- colnames(testeDB)
+  dbClassOff <- match("class", colunsNames)
+  testData <- testeDB[, -dbClassOff]
+  type <- "class"
+  testDBClass <- testeDB$class
+  confusion <- table(predict(model, testData, type), testDBClass)
   return(confusion)
 }
 
-# Convert each sample in prob_preds in character
-convertProbPreds <- function(prob_preds) {
-  aux <- sapply(prob_preds, is.factor)
-  prob_preds[aux] <- lapply(prob_preds[aux], as.character)
-  return(prob_preds)
+# Convert each sample in probPreds in character
+convertProbPreds <- function(probPreds) {
+  aux <- sapply(probPreds, is.factor)
+  probPreds[aux] <- lapply(probPreds[aux], as.character)
+  return(probPreds)
 }
 
 generateModel <- function(learner, form, data, sup) {
@@ -22,9 +22,9 @@ generateModel <- function(learner, form, data, sup) {
 }
 
 # Generate a matrix with the sample, class and confidence value
-generateProbPreds <- function(pred_func, model, data, sup) {
-  prob_preds <- do.call(pred_func, list(model, data[-sup, ]))
-  return(prob_preds)
+generateProbPreds <- function(predFunc, model, data, sup) {
+  probPreds <- do.call(predFunc, list(model, data[-sup, ]))
+  return(probPreds)
 }
 
 # Calculate the acc and return
@@ -33,13 +33,42 @@ getAcc <- function(matrix, all) {
   return(acc)
 }
 
+#' @description Void Function to load all global variables of the code
+#'
+initGlobalVariables <- function() {
+  trainSet <<- c()
+  training <<- c()
+  accC1S <<- c()
+  accC1V <<- c()
+  accC2 <<- c()
+  # FlexCon-C1 variables
+  globalIt <<- c()
+  db <<- c()
+  confValue <<- c()
+  globalSamplasAdd <<- c()
+  percentageLabelSamples <<- c()
+  globalAcc <<- c()
+  glocalCorrect <<- c()
+  # # FlexCon-C2 variables
+  # it_g_3 <<- c()
+  # bd_g_3 <<- c()
+  # thrConf_g_3 <<- c()
+  # nr_added_exs_g_3 <<- c()
+  # tx_g_3 <<- c()
+  # acc_g_3 <<- c()
+  # acertou_g_3 <<- c()
+  # grad_g <<- c()
+  # bd <<- c()
+  # tx <<- c()
+}
+
 #' @description This function set the class atribute to NA without change the
 #' class of selected samples
 #'
-#' @usage newBase(base_rotulada, ids_treino_rot)
+#' @usage newBase(labeledDB, trainId)
 #'
-#' @param base_rotulada the full dataset without changes
-#' @param ids_treino_rot the vector with the selected samples
+#' @param labeledDB the full dataset without changes
+#' @param trainId the vector with the selected samples
 #'
 #' @return a new dataset with some percents of the samples have the NA in class
 #' atribute
@@ -47,27 +76,27 @@ getAcc <- function(matrix, all) {
 #' @examples
 #' data(iris)
 #'
-#' H2 <- holdout(base_rotulada_treino$class, ratio = (taxa / 100),
+#' H2 <- holdout(labeledDB_treino$class, ratio = (taxa / 100),
 #' mode = "stratified")
-#' base <- newBase(base_rotulada_treino, ids_treino_rot)
-#' ids_treino_rot <- H2$tr
+#' base <- newBase(labeledDB_treino, trainId)
+#' trainId <- H2$tr
 #'
 #' @seealso rminer.holdout
 #'
-newBase <- function(base_rotulada, ids_treino_rot){
-  base_rotulada[-ids_treino_rot, "class"] <- NA
-  return(base_rotulada)
+newBase <- function(labeledDB, trainId){
+  labeledDB[-trainId, "class"] <- NA
+  return(labeledDB)
 }
 
 # Return the new confidence value changed by the cr value
 #cr=5 nem umas das condiçoes vao ser aceitas
-newConfidence <- function(acc_local, limiar, tx_conf) { 
-  if ((acc_local > (limiar + 1)) && ((tx_conf - cr / 100) > 0.0)) {
-    tx_conf <- tx_conf - cr / 100
-  } else if ((acc_local < (limiar - 1)) && ((tx_conf + cr / 100) <= 1)) {
-    tx_conf <- tx_conf + cr / 100
+newConfidence <- function(localAcc, limiar, confValue) { 
+  if ((localAcc > (limiar + 1)) && ((confValue - cr / 100) > 0.0)) {
+    confValue <- confValue - cr / 100
+  } else if ((localAcc < (limiar - 1)) && ((confValue + cr / 100) <= 1)) {
+    confValue <- confValue + cr / 100
   }
-  return(tx_conf)
+  return(confValue)
 }
 
 # Search in the 'moda' vector the higger value of the sample (sum or vote)
@@ -76,80 +105,69 @@ searchClass <- function(i, moda) {
 }
 
 # Storage the vote of the classifier each iteration
-storageFashion <- function(prob_preds, moda) {
-  dist_classes <- unique(base_original$class)
-  for (x in 1:NROW(prob_preds)) {
-    id <- as.numeric(prob_preds[x, ncol(prob_preds)])
-    for (y in 1:(length(dist_classes))) {
-      if (as.character(prob_preds[x, 1]) == as.character(dist_classes[y])) {
-        moda[id, dist_classes[y]] <- moda[id, dist_classes[y]] + 1
+storageFashion <- function(probPreds, moda) {
+  distClass <- unique(originalDB$class)
+  for (x in 1:NROW(probPreds)) {
+    id <- as.numeric(probPreds[x, ncol(probPreds)])
+    for (y in 1:(length(distClass))) {
+      if (as.character(probPreds[x, 1]) == as.character(distClass[y])) {
+        moda[id, distClass[y]] <- moda[id, distClass[y]] + 1
         break
       }
     }
   }
-  return (moda)
-}
-
-storagePred <- function(predic, iterac) {
-  if (iterac == 1) {
-    soma <<- predic
-    cat("criar vetor com o voto e a soma")
-  } else {
-    cat("incrementar o voto e a soma")
-  }
+  return(moda)
 }
 
 # Storage the sum of the confidence for each iteration
-storageSum <- function(prob_preds, moda) {
-  dist_classes <- unique(base_original$class)
-  for (x in 1:NROW(prob_preds)) {
-    id <- as.numeric(prob_preds[x, ncol(prob_preds)])
-    for (y in 1:length(dist_classes)) {
-      if (as.character(prob_preds[x, 1]) == as.character(dist_classes[y])) {
-        moda[id, dist_classes[y]] <- moda[id, dist_classes[y]] + prob_preds[x, 2]
+storageSum <- function(probPreds, moda) {
+  distClass <- unique(originalDB$class)
+  for (x in 1:NROW(probPreds)) {
+    id <- as.numeric(probPreds[x, ncol(probPreds)])
+    for (y in 1:length(distClass)) {
+      if (as.character(probPreds[x, 1]) == as.character(distClass[y])) {
+        moda[id, distClass[y]] <- moda[id, distClass[y]] + probPreds[x, 2]
         break
       }
     }
   }
-  return (moda)
+  return(moda)
 }
 
 
 #' @description Make a supervised model and get the accuracy of this.
 #'
 #' @param cl the choosen classifier
-#' @param base_rotulados_ini the dataset with the initial samples labeled.
-#' @param baase_tst base de teste = dados inicialmente rotulados.
+#' @param initialLabeledDB the dataset with the initial samples labeled.
 #'
 #' @return Return the accuracy of the dataset with the initial samples
 #' labeled.
 #'
-supAcc <- function(cl, base_rotulados_ini, base_tst){
-  std <- supModel(cl, base_rotulados_ini)
-  matriz_confusao_supervisionado <- confusionMatrix(std, base_tst)
-  # acc_sup_3 <- getAcc(matriz_confusao_supervisionado, sum(matriz_confusao_supervisionado))
-  return (getAcc(matriz_confusao_supervisionado, sum(matriz_confusao_supervisionado)))
+supAcc <- function(cl, initialLabeledDB){
+  std <- supModel(cl, initialLabeledDB)
+  supConfusionMatrix <- confusionMatrix(std)
+  return(getAcc(supConfusionMatrix, sum(supConfusionMatrix)))
 }
 
 #' @description A supervised model trained with the initial samples.
 #'
 #' @param cl the classifier to be used.
-#' @param base_rotulados_ini the dataset with the initial samples labeled.
+#' @param initialLabeledDB the dataset with the initial samples labeled.
 #'
 #' @return Return a supervised classifier.
 #'
-supModel <- function(cl, base_rotulados_ini){
-  switch (cl,
+supModel <- function(cl, initialLabeledDB){
+  switch(cl,
           "naiveBayes" = std <- naiveBayes(as.formula(paste(classe, '~', '.')),
-                                           base_rotulados_ini),
+                                           initialLabeledDB),
           "rpartXse" = std <- rpartXse(as.formula(paste(classe, '~', '.')),
-                                       base_rotulados_ini, se = 0.5),
+                                       initialLabeledDB, se = 0.5),
           "JRip" = std <- JRip(as.formula(paste(classe, '~', '.')),
-                               base_rotulados_ini),
+                               initialLabeledDB),
           "IBk" = std <- IBk(as.formula(paste(classe, '~', '.')),
-                             base_rotulados_ini,
+                             initialLabeledDB,
                              control = Weka_control(K = as.integer(sqrt(
-                               nrow(base_rotulados_ini))), X = TRUE))
+                               nrow(initialLabeledDB))), X = TRUE))
   )
   return(std)
 }
@@ -161,113 +179,65 @@ supModel <- function(cl, base_rotulados_ini){
 #' novo e chama a funcao validTraining para validar se os dois conjuntos juntos 
 #' podem ser treinados.
 #'
-#' @param treino_valido_i boolean for check if it's a valid train.
+#' @param validTrainIt boolean for check if it's a valid train.
 #' @param in_conj_treino vector with the samples to train.
-#' @param id_conj_treino_antigo old vector whit the samples to train.
+#' @param oldTrainSetIds old vector whit the samples to train.
 #' @param data the dataset with all samples.
-#' @param N_classes the total of the classes in the dataset.
-#' @param min_exem_por_classe the min samples of each class for training.
+#' @param nClass the total of the classes in the dataset.
+#' @param minSamplesClass the min samples of each class for training.
 #'
 #' @return a boolean to say if the classification is valid.
 #'
-validClassificationAntigo <- function(treino_valido_i, id_conj_treino,
-                                      id_conj_treino_antigo, data, N_classes,
-                                      min_exem_por_classe) {
-  if (treino_valido_i) {
-    conj_treino <<- data[id_conj_treino, ]
-    id_conj_treino_antigo <<- c()
-    classificar <- TRUE
-    mudou_conj_treino <<- TRUE
-  } else if (length(id_conj_treino_antigo) >= 1) {
-    conj_treino <<- rbind(data[id_conj_treino, ], data[id_conj_treino_antigo, ])
-    id_conj_treino1 <- c(id_conj_treino, id_conj_treino_antigo)
-    validTraining(data, id_conj_treino1, N_classes, min_exem_por_classe)
-    mudou_conj_treino <<- TRUE
-    if (treino_valido) {
-      classificar <- TRUE
-    } else {
-      classificar <- FALSE
+#' TODO review this comment
+#'
+validClassification <- function(validTrainIt, localOldTrainSet,
+                                localTrainSet, nClass, minSamplesClass) {
+  if (validTrainIt) {
+    trainSet <<- localTrainSet
+    OldTrainSet <<- c()
+    changeTrainSet <<- TRUE
+    return(TRUE)
+  } else if (!is.null(nrow(localOldTrainSet))) {
+    trainSet <<- rbind(localTrainSet, localOldTrainSet)
+    validTrainIt <- validTraining(trainSet, nClass, minSamplesClass)
+    changeTrainSet <<- TRUE
+    if (validTrainIt) {
+      return(TRUE)
     }
-  } else {
-    classificar <- FALSE
   }
-  return(classificar)
+  return(FALSE)
 }
 
-validClassification <- function(treino_valido_i, conj_treino_antigo_local,
-                                conj_treino_local, N_classes, min_exem_por_classe) {
-  if (treino_valido_i) {
-    conj_treino <<- conj_treino_local
-    conj_treino_antigo <<- c()
-    classificar <- TRUE
-    mudou_conj_treino <<- TRUE
-  } else if (!is.null(nrow(conj_treino_antigo_local))) {
-    conj_treino <<- rbind(conj_treino_local, conj_treino_antigo_local)
-    treino_valido_i <- validTraining(conj_treino, N_classes, min_exem_por_classe)
-    mudou_conj_treino <<- TRUE
-    if (treino_valido_i) {
-      classificar <- TRUE
-    } else {
-      classificar <- FALSE
-    }
-  } else {
-    classificar <- FALSE
-  }
-  return(classificar)
-}
 #' @description Check if exists a min accetable samples per class.
 #' o treino só é válido se todas as classes estiverem representadas no conj.
 #' de treimento e se a quantidade de exemplos de cada classe for no mínimo (a qtdade
 #' de exemplos da classe com menor representação no conj. ini. rot.?)
 #'
 #' @param data the all dataset.
-#' @param id_conj_treino vector with the samples selectedes to train.
-#' @param Nclasses the total of the classes in the dataset.
-#' @param min_exem_por_classe the min samples of each class for training.
+#' @param trainSetIds vector with the samples selectedes to train.
+#' @param Nclass the total of the classes in the dataset.
+#' @param minSamplesClass the min samples of each class for training.
 #'
 #' @return a boolean to say if the training is valid.
 #'
-validTrainingAntigo <- function(data, id_conj_treino, Nclasses, min_exem_por_classe) {
-  exemplos_classe <- ddply(data[id_conj_treino, ], ~class, summarise,number_of_distinct_orders = length(class))
-  
-  treino_valido <- FALSE
-  if ((NROW(exemplos_classe)-1) == Nclasses) {
-    for (x in 1:(NROW(exemplos_classe)-1)) {
-      if (exemplos_classe$number_of_distinct_orders[x] >= min_exem_por_classe) {
-        treino_valido <- TRUE
-      } else {
-        treino_valido <- FALSE
-        return (treino_valido)
+validTraining <- function(data, trainSetIds, Nclass, minSamplesClass) {
+  samplesClass <- ddply(data[trainSetIds, ], ~class, summarise,
+                           distictClass = length(class))
+  if (NROW(samplesClass) == Nclass) {
+    for (x in 1:NROW(samplesClass)) {
+      if (samplesClass$distictClass[x] < minSamplesClass) {
+        return(FALSE)
       }
     }
-    return (treino_valido)
+    return(TRUE)
   }
-  return (treino_valido)
-}
-
-validTraining <- function(data, Nclasses, min_exem_por_classe) {
-  exemplos_classe <- ddply(data, ~class, summarise,number_of_distinct_orders = length(class))
-  
-  treino_valido <- FALSE
-  if (NROW(exemplos_classe) == Nclasses) {
-    for (x in 1:(NROW(exemplos_classe))) {
-      if (exemplos_classe$number_of_distinct_orders[x] >= min_exem_por_classe) {
-        treino_valido <- TRUE
-      } else {
-        treino_valido <- FALSE
-        return (treino_valido)
-      }
-    }
-    return (treino_valido)
-  }
-  return (treino_valido)
+  return(FALSE)
 }
 
 whichDB <- function(pattern) {
-  tryCatch({  
-    file <- list.files(pattern = pattern)
+  file <- list.files(pattern = pattern)
+  if (length(file) != 0) {
     bd <- readFile(file)
-    return (as.integer((nrow(bd) / 10) + 1))
-  }, 
-  error = function(setIniBd){return(1)})
+    return(as.integer((nrow(bd) / 10) + 1))
+  }
 }
