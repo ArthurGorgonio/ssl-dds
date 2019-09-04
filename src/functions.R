@@ -1,5 +1,5 @@
 # Calculate the acc value of the training samples
-calcLocalAcc <- function() {
+calcLocalAcc <- function(c, initialLabeledDB) {
   if (c == 1) {
     classifier <- naiveBayes(as.factor(class) ~ ., trainSet)
   } else if (c == 2) {
@@ -15,12 +15,12 @@ calcLocalAcc <- function() {
 }
 
 # Return the confusion matrix
-confusionMatrix <- function(model) {
-  colunsNames <- colnames(testeDB)
+confusionMatrix <- function(model, testDB) {
+  colunsNames <- colnames(testDB)
   dbClassOff <- match("class", colunsNames)
-  testData <- testeDB[, -dbClassOff]
+  testData <- testDB[, -dbClassOff]
   type <- "class"
-  testDBClass <- testeDB$class
+  testDBClass <- testDB$class
   confusion <- table(predict(model, testData, type), testDBClass)
   return(confusion)
 }
@@ -167,7 +167,7 @@ storageSum <- function(probPreds, moda) {
 #'
 supAcc <- function(cl, initialLabeledDB){
   std <- supModel(cl, initialLabeledDB)
-  supConfusionMatrix <- confusionMatrix(std)
+  supConfusionMatrix <- confusionMatrix(std, initialLabeledDB)
   return(getAcc(supConfusionMatrix, sum(supConfusionMatrix)))
 }
 
@@ -179,17 +179,14 @@ supAcc <- function(cl, initialLabeledDB){
 #' @return Return a supervised classifier.
 #'
 supModel <- function(cl, initialLabeledDB){
-  switch(cl,
-          "naiveBayes" = std <- naiveBayes(as.formula(paste(classe, '~', '.')),
-                                           initialLabeledDB),
-          "rpartXse" = std <- rpartXse(as.formula(paste(classe, '~', '.')),
-                                       initialLabeledDB, se = 0.5),
-          "JRip" = std <- JRip(as.formula(paste(classe, '~', '.')),
-                               initialLabeledDB),
-          "IBk" = std <- IBk(as.formula(paste(classe, '~', '.')),
-                             initialLabeledDB,
-                             control = Weka_control(K = as.integer(sqrt(
-                               nrow(initialLabeledDB))), X = TRUE))
+  form = as.formula(paste(class, '~', '.'))
+  switch(as.character(cl),
+          '1' = std <- naiveBayes(form, initialLabeledDB),
+          '2' = std <- rpartXse(form, initialLabeledDB, se = 0.5),
+          '3' = std <- JRip(form, initialLabeledDB),
+          '4' = std <- IBk(form, initialLabeledDB,
+                         control = Weka_control(K = as.integer(sqrt(
+                                          nrow(initialLabeledDB))), X = TRUE))
   )
   return(std)
 }
