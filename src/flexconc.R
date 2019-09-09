@@ -1,99 +1,90 @@
 # Check which samples in dataXIt have equal classes than data1It
 # Check in both matrixes if the confidence value are higger than confValue
-classCheck <- function(data1It, dataXIt, confValue) {
-  examples <- c()
+basicCheck <- function(data1It, dataXIt, confValue, moda, comparation) {
+  samplesData <- c()
   pos <- 0
   xId <- c()
   yCl <- c()
   zConfPred <- c()
   lvls <- match(dataXIt$id, data1It$id)
   for (indice in 1:length(lvls)) {
-    if ((as.character(data1It[lvls[indice], 1])
-         == as.character(dataXIt[indice, 1]))) {
-      if ((data1It[lvls[indice], 2] >= confValue)
-          && (dataXIt[indice, 2] >= confValue)) {
-        pos <- pos + 1
-        xId[pos] <- indice
-        yCl[pos] <- dataXIt[indice, 1]
-        zConfPred[pos] <- dataXIt[indice, 2]
-      }
+    if (letCheck(data1It, dataXIt, confValue, indice, moda, comparation)) {
+      pos <- pos + 1
+      xId[pos] <- dataXIt[indice, 3]
+      yCl[pos] <- dataXIt[indice, 1]
+      zConfPred[pos] <- dataXIt[indice, 2]
     }
   }
-  examples <- data.frame(id = xId, cl = yCl)
-  return(examples)
+  samplesData <- data.frame(cl = yCl, prob = zConfPred, id = xId)
+  return(samplesData)
+}
+
+letCheck <- function(data1It, dataXIt, confValue, indice, moda, comparation) {
+  switch(comparation,
+         "1" = {
+           return(classCheck(data1It, dataXIt, confValue, indice))
+         },
+         "2" = {
+           return(confCheck(data1It, dataXIt, confValue, indice))
+         },
+         "3" = {
+           return(diffClassesCheck(data1It, dataXIt, confValue, indice, moda))
+         }
+         "4" = {
+           return(diffConfCheck(data1It, dataXIt, confValue, indice, moda))
+         }
+         )
+  return(FALSE)
+}
+
+classCheck <- function(data1It, dataXIt, confValue, indice) {
+  if ((as.character(data1It[lvls[indice], 1])
+       == as.character(dataXIt[indice, 1]))) {
+    if ((data1It[lvls[indice], 2] >= confValue)
+        && (dataXIt[indice, 2] >= confValue)) {
+      return(TRUE)
+    }
+  }
+  return(FALSE)
 }
 
 # Check in both matrixes if one of confidences values are higger than confValue
 # The class of this samples is select observing the sum of the confidences or choose the most voted class
-confidenceCheck <- function(data1It, dataXIt, confValue) {
-  examples <- c()
-  pos <- 0
-  xId <- c()
-  yCl <- c()
-  zConfPred <- c()
-  lvls <- match(dataXIt$id, data1It$id)
-  for (indice in 1:length(lvls)) {
-    if ((as.character(data1It[lvls[indice], 1])
-         == as.character(dataXIt[indice, 1]))) {
-      if ((data1It[lvls[indice], 2] >= confValue)
-          || (dataXIt[indice, 2] >= confValue)) {
-        pos <- pos + 1
-        xId[pos] <- indice
-        yCl[pos] <- dataXIt[indice, 1]
-        zConfPred[pos] <- dataXIt[indice, 2]
-      }
+confCheck <- function(data1It, dataXIt, confValue, indice) {
+  if ((as.character(data1It[lvls[indice], 1])
+       == as.character(dataXIt[indice, 1]))) {
+    if ((data1It[lvls[indice], 2] >= confValue)
+        || (dataXIt[indice, 2] >= confValue)) {
+      return(TRUE)
     }
   }
-  examples <- data.frame(id = xId, cl = yCl)
-  return(examples)
+  return(FALSE)
 }
 
 # Check in both matrixes if both confidences values are higger than confValue
 # The class of this samples is select observing the sum of the confidences or choose the most voted class
-differentClassesCheck <- function(data1It, dataXIt, confValue, moda) {
-  pos <- 0
-  xId <- c()
-  yCl <- c()
-  zConfPred <- c()
-  lvls <- match(dataXIt$id, data1It$id)
-  for (indice in 1:length(lvls)) {
-    if ((as.character(data1It[lvls[indice], 1])
-         != as.character(dataXIt[indice, 1]))) {
-      if ((data1It[lvls[indice], 2] >= confValue)
-          && (dataXIt[indice, 2] >= confValue)) {
-        pos <- pos + 1
-        xId[pos] <- indice
-        yCl[pos] <- searchClass(xId[pos], moda)
-        zConfPred[pos] <- dataXIt[indice, 2]
-      }
+diffClassesCheck <- function(data1It, dataXIt, confValue, indice, moda) {
+  if ((as.character(data1It[lvls[indice], 1])
+       != as.character(dataXIt[indice, 1]))) {
+    if ((data1It[lvls[indice], 2] >= confValue)
+        && (dataXIt[indice, 2] >= confValue)) {
+      return(TRUE)
     }
   }
-  examples <- data.frame(id = xId, cl = yCl)
-  return(examples)
+  return(FALSE)
 }
 
 # Check in both matrixes if one of confidences values are higger than confValue
 # The class of this samples is select observing the sum of the confidences or choose the most voted class
-differentConfidencesCheck <- function(data1It, dataXIt, confValue, moda) {
-  pos <- 0
-  xId <- c()
-  yCl <- c()
-  zConfPred <- c()
-  lvls <- match(dataXIt$id, data1It$id)
-  for (indice in 1:length(lvls)) {
-    if ((as.character(data1It[lvls[indice], 1])
-         != as.character(dataXIt[indice, 1]))) {
-      if ((data1It[lvls[indice], 2] >= confValue)
-          || (dataXIt[indice, 2] >= confValue)) {
-        pos <- pos + 1
-        xId[pos] <- indice
-        yCl[pos] <- searchClass(xId[pos], moda)
-        zConfPred[pos] <- dataXIt[indice, 2]
-      }
+diffConfCheck <- function(data1It, dataXIt, confValue, indice, moda) {
+  if ((as.character(data1It[lvls[indice], 1])
+       != as.character(dataXIt[indice, 1]))) {
+    if ((data1It[lvls[indice], 2] >= confValue)
+        || (dataXIt[indice, 2] >= confValue)) {
+      return(TRUE)
     }
   }
-  examples <- data.frame(id = xId, cl = yCl)
-  return(examples)
+  return(FALSE)
 }
 
 # FlexCon-C the base algorithm
@@ -111,7 +102,7 @@ flexConC <- function(learner, predFunc, minSamplesClass, limiar, method) {
   totalLab <- 0
   trainSet <<- c()
   validTrain <<- FALSE
-  classificar <- TRUE
+  classify <- TRUE
   sup <- which(!is.na(data[, as.character(form[[2]])]))
   trainSetIds <- c()
   oldTrainSetIds <- c()
@@ -132,12 +123,12 @@ flexConC <- function(learner, predFunc, minSamplesClass, limiar, method) {
     if (lenLabeled > 0) {
       lenLabeled <- 0
       validTtrain <- validTraining(data, trainSetIds, nClass, minSamplesClass)
-      classificar <- validClassification(validTrain, trainSetIds,
+      classify <- validClassification(validTrain, trainSetIds,
                                          oldTrainSetIds, data, nClass,
                                          minSamplesClass)
-      if (classificar) {
-        acc_local <- calcLocalAcc()
-        confValue <- newConfidence(acc_local, limiar, confValue)
+      if (classify) {
+        localAcc <- calcLocalAcc()
+        confValue <- newConfidence(localAcc, limiar, confValue)
       }
     }
     model <- generateModel(learner, form, data, sup)
@@ -194,26 +185,24 @@ flexConC1 <- function(probPreds, confValue, moda, it) {
   if (it == 1) {
     probPreds1It <<- probPreds
     newSamples <- which(probPreds[ , 2] >= confValue)
-    rotulados <- data.frame(id = probPreds[newSamples, 3],
+    labeled <- data.frame(id = probPreds[newSamples, 3],
                             cl = probPreds[newSamples, 1])
   } else {
-    rotulados <- classCheck(probPreds1It, probPreds, confValue)
-    lenLabeled <- length(rotulados$id)
+    labeled <- basicCheck(probPreds1It, probPreds, confValue, moda, "1")
+    lenLabeled <- length(labeled$id)
     if (lenLabeled == 0) {
-      rotulados <- confidenceCheck(probPreds1It, probPreds, confValue)
-      lenLabeled <- length(rotulados$id)
+      labeled <- basicCheck(probPreds1It, probPreds, confValue, moda, "2")
+      lenLabeled <- length(labeled$id)
       if (lenLabeled == 0) {
-        rotulados <- differentClassesCheck(probPreds1It, probPreds, confValue,
-                                           moda)
-        lenLabeled <- length(rotulados$id)
+        labeled <- basicCheck(probPreds1It, probPreds, confValue, moda, "3")
+        lenLabeled <- length(labeled$id)
         if (lenLabeled == 0) {
-          rotulados <- differentConfidencesCheck(probPreds1It, probPreds,
-                                                 confValue, moda)
+          labeled <- basicCheck(probPreds1It, probPreds, confValue, moda, "4")
         }
       }
     }
   }
-  newSamples <- rotulados$id
+  newSamples <- labeled$id
   return(newSamples)
 }
 
@@ -240,4 +229,3 @@ flexConC2 <- function(probPreds, probPredsSuperv, confValue) {
   }
   return(newSamples)
 }
-
