@@ -7,15 +7,14 @@ setWorkspace <- function() {
     setwd("C:\\Projects\\Mestrado")
   }
 }
-
+msgs = "The arg must be integer between 1-4!\n1 - NaiveBayes\n2 - rpartXse",
+       "\n3 - JRip\n4 - IBk"
 args = commandArgs(trailingOnly = TRUE)
 if ((args == "-h") || (args == "--help")) {
-  cat("The arg must be integer between 1-4!\n1 - NaiveBayes\n2 - rpartXse",
-       "\n3 - JRip\n4 - IBk")
+  cat(msgs)
 } else if ((as.integer(args) == F) || (is.na(as.integer(args))) ||
            (as.integer(args) > 4) || (as.integer(args) < 1)) {
-  stop("The arg must be integer between 1-4!\n1 - NaiveBayes\n2 - rpartXse",
-       "\n3 - JRip\n4 - IBk")
+  stop(msgs)
 } else {
   setWorkspace()
   cat("Args = ", args)
@@ -24,13 +23,13 @@ if ((args == "-h") || (args == "--help")) {
   source("crossValidation.R")
   source("flexconc.R")
   source("utils.R")
-  folds <- stratifiedKFold(data, data$class)
-  for (fold in folds) {
-    train <- data[-fold, ]
-    test <- data[fold, ]
-    model <- naiveBayes(class ~ ., train)
-    cat(rep("*",15), "\n")
-    mClass <- predict(model, test[,-1], type = "class")
-    table(mClass, test$class)
-  }
+  # folds <- stratifiedKFold(data, data$class)
+  # for (fold in folds) {
+  #   train <- data[-fold, ]
+  #   test <- data[fold, ]
+  #   model <- naiveBayes(class ~ ., train)
+  #   cat(rep("*",15), "\n")
+  #   mClass <- predict(model, test[,-1], type = "class")
+  #   table(mClass, test$class)
+  # }
 }
