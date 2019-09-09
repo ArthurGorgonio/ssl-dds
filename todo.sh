@@ -1,2 +1,2 @@
-#!/bin/zsh
+#!/bin/bash
 git grep TODO
