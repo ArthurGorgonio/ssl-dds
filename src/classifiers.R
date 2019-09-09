@@ -11,14 +11,14 @@ attKValue <- function(database) {
 
 #' @description Predicted values of all instances of the data
 #'
-#' @param m model
-#' @param d data
+#' @param model the current model
+#' @param data the current dataset
 #' @param funcType the type of the function for each classifier
 #'
-generatePredict <- function(m, d, funcType) {
-  p <- predict(m, d, type = funcType)
-  predicao <<- data.frame(p, row.names(d))
-  col1 <- colnames(p)[apply(p, 1, which.max)]
-  col2 <- apply(p, 1, max)
-  data.frame(cl = col1, p = col2, id = row.names(d))
+generatePredict <- function(model, data, funcType) {
+  pred <- predict(model, data, type = funcType)
+  # predicao <<- data.frame(pred, row.names(data))
+  col1 <- colnames(pred)[apply(pred, 1, which.max)]
+  col2 <- apply(pred, 1, max)
+  return(data.frame(cl = col1, pred = col2, id = row.names(data)))
 }

@@ -88,10 +88,10 @@ diffConfCheck <- function(data1It, dataXIt, confValue, indice, moda) {
 }
 
 # FlexCon-C the base algorithm
-flexConC <- function(learner, predFunc, minSamplesClass, limiar, method) {
+flexConC <- function(learner, predFunc, minSamplesClass, threshold, method,
+                     data) {
   # Initial setup, this is equal in all methods FlexCon-C1 and FlexCon-C2
   form <- as.formula(paste(classe, '~', '.'))
-  data <- base
   confValue <- 0.95
   maxIts <- 100
   verbose <- TRUE
@@ -120,17 +120,6 @@ flexConC <- function(learner, predFunc, minSamplesClass, limiar, method) {
     newSamples <- c()
     correct <- 0
     it <- it + 1
-    if (lenLabeled > 0) {
-      lenLabeled <- 0
-      validTtrain <- validTraining(data, trainSetIds, nClass, minSamplesClass)
-      classify <- validClassification(validTrain, trainSetIds,
-                                         oldTrainSetIds, data, nClass,
-                                         minSamplesClass)
-      if (classify) {
-        localAcc <- calcLocalAcc()
-        confValue <- newConfidence(localAcc, limiar, confValue)
-      }
-    }
     model <- generateModel(learner, form, data, sup)
     probPreds <- generateProbPreds(predFunc, model, data, sup)
     switch(method,
@@ -171,10 +160,17 @@ flexConC <- function(learner, predFunc, minSamplesClass, limiar, method) {
       oldTrainSetIds <- appendVectors(oldTrainSetIds, trainSetIds)
       trainSetIds <- (1:nrow(data))[-sup][newSamples]
       sup <- c(sup, trainSetIds)
+      validTtrain <- validTraining(data, trainSetIds, nClass, minSamplesClass)
+      classify <- validClassification(validTrain, trainSetIds, oldTrainSetIds,
+                                      data, nClass, minSamplesClass)
+      if (classify) {
+        localAcc <- calcLocalAcc()
+        confValue <- newConfidence(localAcc, threshold, confValue)
+      }
     } else {
-      confValue <- max(probPreds[ , 2])
+      confValue <- max(probPreds[, 2])
     }
-    if ((it == maxIts) || ((length(sup) / nrow(data)) >= 1)) {
+    if ((it == maxIts) || (length(sup) == nrow(data))) {
       break
     }
   }

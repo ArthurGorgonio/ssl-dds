@@ -39,7 +39,7 @@ generateModel <- function(learner, form, data, sup) {
 
 # Generate a matrix with the sample, class and confidence value
 generateProbPreds <- function(predFunc, model, data, sup) {
-  probPreds <- do.call(predFunc, list(model, data[-sup, ]))
+  probPreds <- generatePredict(model, data[-sup, ], predFunc)
   return(probPreds)
 }
 
@@ -52,7 +52,7 @@ getAcc <- function(matrix, all) {
 #' @description Function to define constants in all code
 #'
 defines <- function() {
-  classe <<- "class"
+  class <<- "class"
   funcType <<- c("raw", "probability", "prob", "probability")
   extention <<- ".csv"
   obj <<- c(learner("naiveBayes", list()), learner("JRip", list()),
@@ -95,16 +95,6 @@ defines <- function() {
 #' @return a new dataset with some percents of the samples have the NA in class
 #' atribute
 #'
-#' @examples
-#' data(iris)
-#'
-#' H2 <- holdout(labeledDB_treino$class, ratio = (taxa / 100),
-#' mode = "stratified")
-#' base <- newBase(labeledDB_treino, trainId)
-#' trainId <- H2$tr
-#'
-#' @seealso rminer.holdout
-#'
 newBase <- function(labeledDB, trainId){
   labeledDB[-trainId, "class"] <- NA
   return(labeledDB)
@@ -112,11 +102,12 @@ newBase <- function(labeledDB, trainId){
 
 # Return the new confidence value changed by the cr value
 #cr=5 nem umas das condiçoes vao ser aceitas
-newConfidence <- function(localAcc, limiar, confValue) {
-  if ((localAcc > (limiar + 1)) && ((confValue - cr / 100) > 0.0)) {
-    confValue <- confValue - cr / 100
-  } else if ((localAcc < (limiar - 1)) && ((confValue + cr / 100) <= 1)) {
-    confValue <- confValue + cr / 100
+newConfidence <- function(localAcc, threshold, confValue) {
+  crRatio <- cr / 100
+  if ((localAcc > (threshold + 1)) && ((confValue - crRatio) > 0.0)) {
+    confValue <- confValue - crRatio
+  } else if ((localAcc < (threshold - 1)) && ((confValue + crRatio) <= 1)) {
+    confValue <- confValue + crRatio
   }
   return(confValue)
 }
