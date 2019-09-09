@@ -102,15 +102,15 @@ RUN apk --no-cache add \
     cd ../../.. && \
     rm -rf /tmp/*
 # Setup the dirs
-RUN mkdir -p /R/karliane/projeto_karliane/flexcon_c && \
-    cd /R/karliane/projeto_karliane/flexcon_c && \
+RUN mkdir -p workspace/ssl-dds/ && \
+    cd workspace/ssl-dds/ && \
     mkdir ../bases
 
 # Copiando tudo da pasta para lá
 # COPY flexcon_c/ R/karliane/projeto_karliane/flexcon_c
 # COPY bases/ R/karliane/projeto_karliane/bases
 # Seting a workdir
-WORKDIR R/karliane/projeto_karliane/flexcon_c
+WORKDIR workspace/ssl-dds/
 
 COPY . .
 
@@ -118,7 +118,7 @@ COPY . .
 RUN R CMD javareconf
 
 # R installing the all need packages to run the experiment
-RUN R -e "source('utils.R')" #install.packages()
+RUN R -e "source('src/utils.R')"
 
 # The basic state of this container is running the experiment with NaiveBayes classifier
 CMD ["Rscript", "main.R", "1"]
