@@ -29,7 +29,7 @@ letCheck <- function(data1It, dataXIt, confValue, indice, moda, comparation) {
          },
          "3" = {
            return(diffClassesCheck(data1It, dataXIt, confValue, indice, moda))
-         }
+         },
          "4" = {
            return(diffConfCheck(data1It, dataXIt, confValue, indice, moda))
          }
@@ -89,7 +89,7 @@ diffConfCheck <- function(data1It, dataXIt, confValue, indice, moda) {
 
 # FlexCon-C the base algorithm
 flexConC <- function(learner, predFunc, minSamplesClass, threshold, method,
-                     data) {
+                     data, sup) {
   # Initial setup, this is equal in all methods FlexCon-C1 and FlexCon-C2
   form <- as.formula(paste(classe, '~', '.'))
   confValue <- 0.95
@@ -122,51 +122,59 @@ flexConC <- function(learner, predFunc, minSamplesClass, threshold, method,
     it <- it + 1
     model <- generateModel(learner, form, data, sup)
     probPreds <- generateProbPreds(predFunc, model, data, sup)
-    switch(method,
-            "1" = {
-              moda <- storageSum(probPreds, moda)
-              newSamples <- flexConC1(probPreds, confValue, moda, it)
-            },
-            "2" = {
-              moda <- storageFashion(probPreds, moda)
-              newSamples <- flexConC1(probPreds, confValue, moda, it)
-            },
-            "3" = {
-              model_superv <- generateModel(learner, form, data, sup)
-              probPredsSuperv <- generateProbPreds(predFunc, model_superv,
-                                                     data, sup)
-              newSamples <- flexConC2(probPreds, probPredsSuperv, confValue)
-            }
-    )
-    if (length(newSamples)) {
-      newData <- data[(1:nrow(data))[-sup][newSamples], as.character(form[2])]
-      if (addRotSuperv) {
-        addRotSuperv <- FALSE
-        newData <- as.character(probPredsSuperv[newSamples, 1])
+    id <- getRealId(data, sup)
+    probPreds$id = id
+    if (it > 1) {
+      switch(method,
+             "1" = {
+               moda <- storageSum(probPreds, moda)
+               newSamples <- flexConC1(probPreds1It, probPreds, confValue, moda)
+             },
+             "2" = {
+               moda <- storageFashion(probPreds, moda)
+               newSamples <- flexConC1(probPreds1It, probPreds, confValue, moda)
+             },
+             "3" = {
+               model_superv <- generateModel(learner, form, data, sup)
+               probPredsSuperv <- generateProbPreds(predFunc, model_superv,
+                                                    data, sup)
+               newSamples <- flexConC2(probPreds, probPredsSuperv, confValue)
+             }
+      )
       } else {
-        newData <- as.character(probPreds[newSamples, 1])
+        probPreds1It <- probPreds
+        idSamples <- which(probPreds[, 2] >= confValue)
+        newSamples <- probPreds[idSamples, ]
       }
-      lenLabeled <- length(newData)
-      total_rot <- total_rot + lenLabeled
-      correct <- 0
-      correct <- (training[(1:nrow(data))[-sup][newSamples],
-                           as.character(form[2])] == newData)
-      correctLen <- NROW(correct)
-      for (w in 1:correctLen) {
-        if (correct[w] == TRUE) {
-          correct <<- correct + 1
+      if (length(newSamples)) {
+        newData <- data[(1:nrow(data))[-sup][newSamples], as.character(form[2])]
+        if (addRotSuperv) {
+          addRotSuperv <- FALSE
+          newData <- as.character(probPredsSuperv[newSamples, 1])
+        } else {
+          newData <- as.character(probPreds[newSamples, 1])
         }
-      }
-      oldTrainSetIds <- appendVectors(oldTrainSetIds, trainSetIds)
-      trainSetIds <- (1:nrow(data))[-sup][newSamples]
-      sup <- c(sup, trainSetIds)
-      validTtrain <- validTraining(data, trainSetIds, nClass, minSamplesClass)
-      classify <- validClassification(validTrain, trainSetIds, oldTrainSetIds,
-                                      data, nClass, minSamplesClass)
-      if (classify) {
-        localAcc <- calcLocalAcc()
-        confValue <- newConfidence(localAcc, threshold, confValue)
-      }
+        lenLabeled <- length(newData)
+        total_rot <- total_rot + lenLabeled
+        correct <- 0
+        correct <- (training[(1:nrow(data))[-sup][newSamples],
+                    as.character(form[2])] == newData)
+        correctLen <- NROW(correct)
+        for (w in 1:correctLen) {
+          if (correct[w] == TRUE) {
+            correct <<- correct + 1
+          }
+        }
+        oldTrainSetIds <- c(oldTrainSetIds, trainSetIds)
+        trainSetIds <- (1:nrow(data))[-sup][newSamples]
+        sup <- c(sup, trainSetIds)
+        validTtrain <- validTraining(data, trainSetIds, nClass, minSamplesClass)
+        classify <- validClassification(validTrain, trainSetIds, oldTrainSetIds,
+                                        data, nClass, minSamplesClass)
+        if (classify) {
+          localAcc <- calcLocalAcc()
+          confValue <- newConfidence(localAcc, threshold, confValue)
+        }
     } else {
       confValue <- max(probPreds[, 2])
     }
@@ -177,24 +185,17 @@ flexConC <- function(learner, predFunc, minSamplesClass, threshold, method,
   return(model)
 }
 
-flexConC1 <- function(probPreds, confValue, moda, it) {
-  if (it == 1) {
-    probPreds1It <<- probPreds
-    newSamples <- which(probPreds[ , 2] >= confValue)
-    labeled <- data.frame(id = probPreds[newSamples, 3],
-                            cl = probPreds[newSamples, 1])
-  } else {
-    labeled <- basicCheck(probPreds1It, probPreds, confValue, moda, "1")
+flexConC1 <- function(probPreds1It, probPreds, confValue, moda) {
+  labeled <- basicCheck(probPreds1It, probPreds, confValue, moda, "1")
+  lenLabeled <- length(labeled$id)
+  if (lenLabeled == 0) {
+    labeled <- basicCheck(probPreds1It, probPreds, confValue, moda, "2")
     lenLabeled <- length(labeled$id)
     if (lenLabeled == 0) {
-      labeled <- basicCheck(probPreds1It, probPreds, confValue, moda, "2")
+      labeled <- basicCheck(probPreds1It, probPreds, confValue, moda, "3")
       lenLabeled <- length(labeled$id)
       if (lenLabeled == 0) {
-        labeled <- basicCheck(probPreds1It, probPreds, confValue, moda, "3")
-        lenLabeled <- length(labeled$id)
-        if (lenLabeled == 0) {
-          labeled <- basicCheck(probPreds1It, probPreds, confValue, moda, "4")
-        }
+        labeled <- basicCheck(probPreds1It, probPreds, confValue, moda, "4")
       }
     }
   }

@@ -49,6 +49,16 @@ getAcc <- function(matrix, all) {
   return(acc)
 }
 
+getDatabase <- function(datasetName) {
+  database <- read.arff(paste("../bases", datasetName, sep = "/"))
+  return(database)
+}
+
+getRealId <- function(dataset, sup) {
+  ids <- as.integer(rownames(dataset))
+  return(ids[-sup])
+}
+
 #' @description Function to define constants in all code
 #'
 defines <- function() {
@@ -120,7 +130,7 @@ searchClass <- function(i, moda) {
 # Storage the vote of the classifier each iteration
 storageFashion <- function(probPreds, moda) {
   distClass <- unique(originalDB$class)
-  for (x in 1:NROW(probPreds)) {
+  for (x in 1:nrow(probPreds)) {
     id <- as.numeric(probPreds[x, ncol(probPreds)])
     for (y in 1:(length(distClass))) {
       if (as.character(probPreds[x, 1]) == as.character(distClass[y])) {
@@ -135,7 +145,7 @@ storageFashion <- function(probPreds, moda) {
 # Storage the sum of the confidence for each iteration
 storageSum <- function(probPreds, moda) {
   distClass <- unique(originalDB$class)
-  for (x in 1:NROW(probPreds)) {
+  for (x in 1:nrow(probPreds)) {
     id <- as.numeric(probPreds[x, ncol(probPreds)])
     for (y in 1:length(distClass)) {
       if (as.character(probPreds[x, 1]) == as.character(distClass[y])) {
@@ -173,8 +183,8 @@ supModel <- function(cl, initialLabeledDB){
   form = as.formula(paste(class, '~', '.'))
   switch(as.character(cl),
           '1' = std <- naiveBayes(form, initialLabeledDB),
-          '2' = std <- rpartXse(form, initialLabeledDB, se = 0.5),
-          '3' = std <- JRip(form, initialLabeledDB),
+          '2' = std <- JRip(form, initialLabeledDB),
+          '3' = std <- rpartXse(form, initialLabeledDB, se = 0.5),
           '4' = std <- IBk(form, initialLabeledDB,
                          control = Weka_control(K = as.integer(sqrt(
                                           nrow(initialLabeledDB))), X = TRUE))
