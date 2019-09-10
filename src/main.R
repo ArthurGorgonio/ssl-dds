@@ -2,13 +2,13 @@
 setWorkspace <- function() {
   mySystem <- Sys.info()
   if (mySystem[[1]] == "Linux") {
-    setwd("~/workspace/ssl-dds/")
+    setwd("~/workspace/ssl-dds/src")
   } else {
     setwd("C:\\Projects\\Mestrado")
   }
 }
-msgs = "The arg must be integer between 1-4!\n1 - NaiveBayes\n2 - rpartXse",
-       "\n3 - JRip\n4 - IBk"
+msgs = c("The arg must be integer between 1-4!\n1 - NaiveBayes\n2 - rpartXse",
+       "\n3 - JRip\n4 - IBk")
 args = commandArgs(trailingOnly = TRUE)
 if ((args == "-h") || (args == "--help")) {
   cat(msgs)
@@ -17,12 +17,19 @@ if ((args == "-h") || (args == "--help")) {
   stop(msgs)
 } else {
   setWorkspace()
-  cat("Args = ", args)
-  source("functions.R")
-  source("classifiers.R")
-  source("crossValidation.R")
-  source("flexconc.R")
-  source("utils.R")
+  as.integer(args)
+  scripts <- list.files()
+  for (scri in scripts) {
+    source(scri)
+  }
+  defines()
+  meansFlexConC1S <- c()
+  meansFlexConC1V <- c()
+  databases <- list.files(path = "../bases")
+  for (dataset in databases) {
+    originalDB <- getDataset(dataset)
+    kNN
+  }
   # folds <- stratifiedKFold(data, data$class)
   # for (fold in folds) {
   #   train <- data[-fold, ]
