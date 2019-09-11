@@ -2,7 +2,7 @@
 #'
 installNeedPacks <- function() {
   packages <- c("ssc", "plyr", "DMwR", "DMwR2", "RWeka", "rminer", "e1071",
-                "ggplot2", "PMCMR")
+                "ggplot2", "PMCMR", "RMOA")
   for (pack in packages) {
     if (!require(pack, character.only = TRUE)) {
       install.packages(pack)
