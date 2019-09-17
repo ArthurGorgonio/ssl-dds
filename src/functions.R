@@ -1,20 +1,33 @@
-# Calculate the acc value of the training samples
-calcLocalAcc <- function(c, initialLabeledDB) {
+#' @description Calculate the acc value of the training samples.
+#'
+#' @param c Classifier to be used.
+#' @param iniLabDB The data set with samples select before FlexConC call.
+#' @param trainSet The samples are select in a moment.
+#'
+#' @return Accuracy of the model trained with a sample set `trainSet`.
+#'
+calcLocalAcc <- function(c, iniLabDB, trainSet) {
   if (c == 1) {
-    classifier <- naiveBayes(as.factor(class) ~ ., trainSet)
+    classifier <- naiveBayes(as.factor(label) ~ ., trainSet)
   } else if (c == 2) {
-    classifier <- rpartXse(as.factor(class) ~ ., trainSet)
+    classifier <- JRip(as.factor(label) ~ ., trainSet)
   } else if (c == 3) {
-    classifier <- JRip(as.factor(class) ~ ., trainSet)
+    classifier <- rpartXse(as.factor(label) ~ ., trainSet)
   } else if (c == 4) {
-    classifier <- IBk(as.factor(class) ~ ., trainSet)
+    classifier <- IBk(as.factor(label) ~ ., trainSet)
   }
-  matriz <- table(predict(classifier, initialLabeledDB), initialLabeledDB$class)
-  localAcc <- ((sum(diag(matriz)) / length(initialLabeledDB$class)) * 100)
+  matriz <- table(predict(classifier, iniLabDB), iniLabDB$class)
+  localAcc <- ((sum(diag(matriz)) / length(iniLabDB$class)) * 100)
   return(localAcc)
 }
 
-# Return the confusion matrix
+#' @description Generate the confusion matrix of the model.
+#'
+#' @param model A trained classifier will be tested.
+#' @param testDB The data set which the classifier will be evaluated.
+#'
+#' @return The confusion matrix.
+#'
 confusionMatrix <- function(model, testDB) {
   colunsNames <- colnames(testDB)
   dbClassOff <- match("class", colunsNames)
@@ -25,35 +38,64 @@ confusionMatrix <- function(model, testDB) {
   return(confusion)
 }
 
-# Convert each sample in probPreds in character
+#' @description Convert each sample in probPreds in character
+#'
+#' @param probPreds A data frame which contains class | confidence ratio | id.
+#'
+#' @return Converted probPreds.
+#'
 convertProbPreds <- function(probPreds) {
   aux <- sapply(probPreds, is.factor)
   probPreds[aux] <- lapply(probPreds[aux], as.character)
   return(probPreds)
 }
 
-generateModel <- function(learner, form, data, sup) {
-  model <- runLearner(learner, form, data[sup, ])
+#' @description Create a classifier from a data set.
+#'
+#' @param learner A classifier will be trained.
+#' @param form The formula of the features and target.
+#' @param dataLab Data set which all labeled samples.
+#'
+#' @return A trained model.
+#'
+generateModel <- function(learner, form, dataLab) {
+  model <- runLearner(learner, form, dataLab)
   return(model)
 }
 
-# Generate a matrix with the sample, class and confidence value
-generateProbPreds <- function(predFunc, model, data, sup) {
-  probPreds <- generatePredict(model, data[-sup, ], predFunc)
+#' @description Generate a matrix with all samples than contains class,
+#'  confidence rate and id of each samples in the data.
+#'
+#' @param model A classifier will be trained.
+#' @param dataUnl Data set which all labeled samples.
+#' @param predFunc The formula to the classifier use the confidence value.
+#'
+#' @return Generate a matrix with all samples x class | confidence value | id.
+#'
+generateProbPreds <- function(model, dataUnl, predFunc) {
+  probPreds <- generatePredict(model, dataUnl, predFunc)
   return(probPreds)
 }
 
-# Calculate the acc and return
+#' @description Calculate the acc of the main diagonal of the matrix.
+#'
+#' @param matrix The confusion matrix of a model.
+#' @param all The sum of the confussion matrix.
+#'
+#' @return The accuracy.
+#'
 getAcc <- function(matrix, all) {
   acc <- ((sum(diag(matrix)) / all) * 100)
   return(acc)
 }
 
-getDatabase <- function(datasetName) {
-  database <- read.arff(paste("../bases", datasetName, sep = "/"))
-  return(database)
-}
-
+#' @description Calculate the acc of the main diagonal of the matrix.
+#'
+#' @param dataset The data set.
+#' @param sup The ids of the labeled samples.
+#'
+#' @return The real ids of the data set.
+#'
 getRealId <- function(dataset, sup) {
   ids <- as.integer(rownames(dataset))
   return(ids[-sup])
@@ -62,7 +104,7 @@ getRealId <- function(dataset, sup) {
 #' @description Function to define constants in all code
 #'
 defines <- function() {
-  class <<- "class"
+  label <<- "class"
   funcType <<- c("raw", "probability", "prob", "probability")
   extention <<- ".csv"
   obj <<- c(learner("naiveBayes", list()), learner("JRip", list()),
@@ -99,10 +141,10 @@ defines <- function() {
 #'
 #' @usage newBase(labeledDB, trainId)
 #'
-#' @param labeledDB the full dataset without changes
-#' @param trainId the vector with the selected samples
+#' @param labeledDB The full dataset without changes
+#' @param trainId The vector with the selected samples
 #'
-#' @return a new dataset with some percents of the samples have the NA in class
+#' @return A new dataset with some percents of the samples have the NA in class
 #' atribute
 #'
 newBase <- function(labeledDB, trainId){
@@ -110,26 +152,47 @@ newBase <- function(labeledDB, trainId){
   return(labeledDB)
 }
 
-# Return the new confidence value changed by the cr value
-#cr=5 nem umas das condiçoes vao ser aceitas
-newConfidence <- function(localAcc, threshold, confValue) {
-  crRatio <- cr / 100
-  if ((localAcc > (threshold + 1)) && ((confValue - crRatio) > 0.0)) {
+#' @description Change the confidence rate using changeRate param to change the
+#'  confidence and flexibilize the algorithm.
+#'
+#' @param localAcc Accuracy of the model trained with a sample set.
+#' @param initialAcc The accuracy of the initial labeled samples.
+#' @param confValue The Confidence value of the present iteration.
+#' @param changeRate The factor of the change.
+#'
+#' @return The new confidence value changed by the `changeRate` value.
+#'
+newConfidence <- function(localAcc, initialAcc, confValue, changeRate) {
+  crRatio <- changeRate / 100
+  if ((localAcc > (initialAcc + 1)) && ((confValue - crRatio) > 0.0)) {
     confValue <- confValue - crRatio
-  } else if ((localAcc < (threshold - 1)) && ((confValue + crRatio) <= 1)) {
+  } else if ((localAcc < (initialAcc - 1)) && ((confValue + crRatio) <= 1)) {
     confValue <- confValue + crRatio
   }
   return(confValue)
 }
 
-# Search in the 'moda' vector the higger value of the sample (sum or vote)
+#' @description Search in the 'moda' matrix, the higger value of the sample
+#'  (sum or vote).
+#'
+#' @param i The index will be searched.
+#' @param moda The matrix with the values.
+#'
+#' @return The label of the index `i`.
+#'
 searchClass <- function(i, moda) {
   return(colnames(moda)[which.max(moda[i, ])])
 }
 
-# Storage the vote of the classifier each iteration
+#' @description Storage the vote of the classifier in each iteration.
+#'
+#' @param probPreds A data frame with remaining samples.
+#' @param moda The history of the choices since the first iteration.
+#'
+#' @return The updated `moda` matrix using fashion.
+#'
 storageFashion <- function(probPreds, moda) {
-  distClass <- unique(originalDB$class)
+  distClass <- colnames(moda)
   for (x in 1:nrow(probPreds)) {
     id <- as.numeric(probPreds[x, ncol(probPreds)])
     for (y in 1:(length(distClass))) {
@@ -142,9 +205,15 @@ storageFashion <- function(probPreds, moda) {
   return(moda)
 }
 
-# Storage the sum of the confidence for each iteration
+#' @description Storage the sum of the confidences in each iteration.
+#'
+#' @param probPreds A data frame with remaining samples.
+#' @param moda The history of the choices since the first iteration.
+#'
+#' @return The updated `moda` matrix using sum of the confidences.
+#'
 storageSum <- function(probPreds, moda) {
-  distClass <- unique(originalDB$class)
+  distClass <- colnames(moda)
   for (x in 1:nrow(probPreds)) {
     id <- as.numeric(probPreds[x, ncol(probPreds)])
     for (y in 1:length(distClass)) {
@@ -160,58 +229,52 @@ storageSum <- function(probPreds, moda) {
 
 #' @description Make a supervised model and get the accuracy of this.
 #'
-#' @param cl the choosen classifier
-#' @param initialLabeledDB the dataset with the initial samples labeled.
+#' @param cl The choosen classifier
+#' @param iniLabDB The dataset with the initial samples labeled.
 #'
 #' @return Return the accuracy of the dataset with the initial samples
 #' labeled.
 #'
-supAcc <- function(cl, initialLabeledDB){
-  std <- supModel(cl, initialLabeledDB)
-  supConfusionMatrix <- confusionMatrix(std, initialLabeledDB)
+supAcc <- function(cl, iniLabDB){
+  std <- supModel(cl, iniLabDB)
+  supConfusionMatrix <- confusionMatrix(std, iniLabDB)
   return(getAcc(supConfusionMatrix, sum(supConfusionMatrix)))
 }
 
 #' @description A supervised model trained with the initial samples.
 #'
-#' @param cl the classifier to be used.
-#' @param initialLabeledDB the dataset with the initial samples labeled.
+#' @param cl The classifier to be used.
+#' @param iniLabDB The dataset with the initial samples labeled.
 #'
 #' @return Return a supervised classifier.
 #'
-supModel <- function(cl, initialLabeledDB){
+supModel <- function(cl, iniLabDB){
   form = as.formula(paste(class, '~', '.'))
   switch(as.character(cl),
-          '1' = std <- naiveBayes(form, initialLabeledDB),
-          '2' = std <- JRip(form, initialLabeledDB),
-          '3' = std <- rpartXse(form, initialLabeledDB, se = 0.5),
-          '4' = std <- IBk(form, initialLabeledDB,
-                         control = Weka_control(K = as.integer(sqrt(
-                                          nrow(initialLabeledDB))), X = TRUE))
+         '1' = std <- naiveBayes(form, iniLabDB),
+         '2' = std <- JRip(form, iniLabDB),
+         '3' = std <- rpartXse(form, iniLabDB, se = 0.5),
+         '4' = {
+           k <- floor(sqrt(nrow(iniLabDB)))
+           std <- IBk(form, iniLabDB, control = Weka_control(K = k, X = TRUE))
+         }
   )
   return(std)
 }
 
-#' @description Check if the classification if valid.
-#' se o treino for válido, a função apenas atribui o conj de treinamento antigo
-#' ao novo conj. de treinamento e limpa o conj. antigo.
-#' se o treino não for válido, a função junta o conj de treinamento antigo com o
-#' novo e chama a funcao validTraining para validar se os dois conjuntos juntos
-#' podem ser treinados.
+#' @description Check if the classification is valid. If the train is not valid, 
+#'  combine all sets and try to train again.
 #'
-#' @param validTrainIt boolean for check if it's a valid train.
-#' @param in_conj_treino vector with the samples to train.
-#' @param oldTrainSetIds old vector whit the samples to train.
-#' @param data the dataset with all samples.
-#' @param nClass the total of the classes in the dataset.
-#' @param minSamplesClass the min samples of each class for training.
+#' @param validTrainIt Check if the train is valid.
+#' @param localOldTrainSet Old vector with the samples to train.
+#' @param localTrainSet A vector with the samples to train.
+#' @param nClass The total of the classes in the dataset.
+#' @param minSamplesClass The min samples of each class for training.
 #'
-#' @return a boolean to say if the classification is valid.
+#' @return Logical return if the classification is valid.
 #'
-#' TODO review this comment
-#'
-validClassification <- function(validTrainIt, localOldTrainSet,
-                                localTrainSet, nClass, minSamplesClass) {
+validClassification <- function(validTrainIt, localOldTrainSet, localTrainSet,
+                                nClass, minSamplesClass) {
   if (validTrainIt) {
     trainSet <<- localTrainSet
     OldTrainSet <<- c()
@@ -233,16 +296,16 @@ validClassification <- function(validTrainIt, localOldTrainSet,
 #' de treimento e se a quantidade de exemplos de cada classe for no mínimo (a qtdade
 #' de exemplos da classe com menor representação no conj. ini. rot.?)
 #'
-#' @param data the all dataset.
-#' @param trainSetIds vector with the samples selectedes to train.
-#' @param Nclass the total of the classes in the dataset.
-#' @param minSamplesClass the min samples of each class for training.
+#' @param data The data set with all samples.
+#' @param trainSetIds The ids of the selected samples to be used in train.
+#' @param Nclass The number of the distinct classes in the data set.
+#' @param minSamplesClass The min samples of each class that training require.
 #'
-#' @return a boolean to say if the training is valid.
+#' @return Logical return training is valid.
 #'
 validTraining <- function(data, trainSetIds, Nclass, minSamplesClass) {
   samplesClass <- ddply(data[trainSetIds, ], ~class, summarise,
-                           distictClass = length(class))
+                        distictClass = length(class))
   if (NROW(samplesClass) == Nclass) {
     for (x in 1:NROW(samplesClass)) {
       if (samplesClass$distictClass[x] < minSamplesClass) {
@@ -252,12 +315,4 @@ validTraining <- function(data, trainSetIds, Nclass, minSamplesClass) {
     return(TRUE)
   }
   return(FALSE)
-}
-
-whichDB <- function(pattern) {
-  file <- list.files(pattern = pattern)
-  if (length(file) != 0) {
-    bd <- readFile(file)
-    return(as.integer((nrow(bd) / 10) + 1))
-  }
 }
