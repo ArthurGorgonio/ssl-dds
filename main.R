@@ -16,8 +16,9 @@ if ((args == "-h") || (args == "--help")) {
            (as.integer(args) > 4) || (as.integer(args) < 1)) {
   stop(msgs)
 } else {
+  args <- "1"
   setWorkspace()
-  as.integer(args)
+  args <- as.integer(args)
   scripts <- list.files()
   for (scri in scripts) {
     source(scri)
@@ -25,10 +26,11 @@ if ((args == "-h") || (args == "--help")) {
   defines()
   meansFlexConC1S <- c()
   meansFlexConC1V <- c()
-  databases <- list.files(path = "../bases")
+  databases <- list.files(path = "../datasets")
   for (dataset in databases) {
-    originalDB <- getDataset(dataset)
-    kNN
+    originalDB <- readData(dataset)
+    batch <- getBatch(originalDB, 500)
+    
   }
   # folds <- stratifiedKFold(data, data$class)
   # for (fold in folds) {

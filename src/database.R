@@ -29,7 +29,7 @@ getDatabase <- function(datasetName, fold = "../datasets") {
 #'
 #' @return an object of the `datastream_dataframe` class.
 #'
-readData <- function(dbName) {
+readData <- function(dbName, fold = "../datasets") {
   data <- datastream_dataframe(factorise(getDatabase(dbName)))
   return(data)
 }
