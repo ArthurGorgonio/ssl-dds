@@ -103,8 +103,7 @@ RUN apk --no-cache add \
     rm -rf /tmp/*
 # Setup the dirs
 RUN mkdir -p workspace/ssl-dds/ && \
-    cd workspace/ssl-dds/ && \
-    mkdir ../bases
+    cd workspace/ssl-dds
 
 # Copiando tudo da pasta para lá
 # COPY flexcon_c/ R/karliane/projeto_karliane/flexcon_c
@@ -112,7 +111,11 @@ RUN mkdir -p workspace/ssl-dds/ && \
 # Seting a workdir
 WORKDIR workspace/ssl-dds/
 
-COPY . .
+COPY ./datasets ./datasets
+
+COPY ./main.R ./main.R
+
+COPY ./src ./src
 
 # R Configuring JAVA enviroment
 RUN R CMD javareconf
