@@ -25,21 +25,31 @@ if ((args == "-h") || (args == "--help")) {
   for (scri in scripts) {
     source(scri)
   }
-  rm(scripts, scri)
+  rm(scripts, scri, msgs)
   defines()
   meansFlexConC1S <- c()
   meansFlexConC1V <- c()
   databases <- list.files(path = "../datasets")
-  for (dataset in databases) {
-    originalDB <- readData(dataset)
-#' TODO iterate in `originalDB` and for each iteration generate a batch with min(remainSamples, batchSize) 
-    dataL <- getBatch(originalDB, 500)
-    attKValue(dataL)
-    folds <- stratifiedKFold(dataL, dataL$class)
-    for (fold in folds) {
-      train <- dataL[-fold, ]
-      test <- dataL[fold, ]
-      
+  for (iniLab in 1:5) {
+    for (dataset in databases) {
+      originalDB <- readData(dataset)
+      while (!(originalDB$finished)) {
+        dataL <- getBatch(originalDB, 500)
+        attKValue(dataL)
+        folds <- stratifiedKFold(dataL, dataL$class)
+        for (fold in folds) {
+          train <- dataL[-fold, ]
+          test <- dataL[fold, ]
+          allIds <- holdout(train$class, ratio = ((iniLab * 5) / 100))
+          #' TODO below checklist:
+          #'  [ ] Split the `train` into label and unlabel sets
+          #'  [ ] Call training script to create the ensemble (3 instances)
+          #'  [ ] Add more each iteration of the method, if needed.
+          #'  [ ] Also meansure the accuracy of each individual classifier
+          #'  [ ] Compare with oracle ensemble member.
+          
+        }
+      }
     }
   }
   #   model <- naiveBayes(class ~ ., train)
