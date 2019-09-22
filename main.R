@@ -8,53 +8,54 @@ setWorkspace <- function() {
   }
 }
 
-msgs = c("The arg must be integer between 1-4!\n1 - NaiveBayes\n2 - JRip",
-       "\n3 - rpartXse\n4 - IBk")
-args = commandArgs(trailingOnly = TRUE)
 
-if ((args == "-h") || (args == "--help")) {
-  cat(msgs)
-} else if ((as.integer(args) == F) || (is.na(as.integer(args))) ||
-           (as.integer(args) > 4) || (as.integer(args) < 1)) {
-  stop(msgs)
-} else {
-  # args <- "1"
-  setWorkspace()
-  args <- as.integer(args)
-  scripts <- list.files()
-  for (scri in scripts) {
-    source(scri)
-  }
-  rm(scripts, scri, msgs)
-  defines()
-  meansFlexConC1S <- c()
-  meansFlexConC1V <- c()
-  databases <- list.files(path = "../datasets")
-  for (iniLab in 1:5) {
-    for (dataset in databases) {
-      originalDB <- readData(dataset)
-      while (!(originalDB$finished)) {
-        dataL <- getBatch(originalDB, 500)
-        attKValue(dataL)
-        folds <- stratifiedKFold(dataL, dataL$class)
-        for (fold in folds) {
-          train <- dataL[-fold, ]
-          test <- dataL[fold, ]
-          allIds <- holdout(train$class, ratio = ((iniLab * 5) / 100))
-          #' TODO below checklist:
-          #'  [ ] Split the `train` into label and unlabel sets
-          #'  [ ] Call training script to create the ensemble (3 instances)
-          #'  [ ] Add more each iteration of the method, if needed.
-          #'  [ ] Also meansure the accuracy of each individual classifier
-          #'  [ ] Compare with oracle ensemble member.
-          
-        }
+shuffleClassify <- function(size) {
+  typeClassify <- 1:length(obj)
+  return(sample(typeClassify, size))
+}
+
+setWorkspace()
+scripts <- list.files()
+for (scri in scripts) {
+  source(scri)
+}
+rm(scripts, scri, msgs)
+defines()
+myFuncs <- funcType[as.integer(args)]
+meansFlexConC1S <- c()
+meansFlexConC1V <- c()
+databases <- list.files(path = "../datasets")
+for (iniLab in 1:5) {
+  ratio <- iniLab * 0.05
+  for (dataset in databases) {
+    originalDB <- readData(dataset)
+    while (!(originalDB$finished)) {
+      if (originalDB$processed == 0) {
+        classify <- shuffleClassify(3)
+        myLearner <- obj[classify]
+        #' TODO length(myLearner) return 3 - classifiers trained with FlexCon-C
+      } else {
+        classify <- shuffleClassify(1)
+        #' 1 classifier trained with FlexCon-C
+      }
+      dataL <- getBatch(originalDB, 500)
+      attKValue(dataL)
+      folds <- stratifiedKFold(dataL, dataL$class)
+      for (fold in folds) {
+        train <- dataL[-fold, ]
+        test <- dataL[fold, ]
+        allIds <- holdout(train$class, ratio = ((iniLab * 5) / 100))
+        labelIds <- allIds$tr
+        initialAcc <- supAcc()
+        data <- newBase(train, labelIds)
+        
+        #' TODO below checklist:
+        #'  [X] Split the `train` into label and unlabel sets
+        #'  [ ] Call training script to create the ensemble (3 instances)
+        #'  [ ] Add more each iteration of the method, if needed.
+        #'  [ ] Also meansure the accuracy of each individual classifier
+        #'  [ ] Compare with oracle ensemble member.
       }
     }
   }
-  #   model <- naiveBayes(class ~ ., train)
-  #   cat(rep("*",15), "\n")
-  #   mClass <- predict(model, test[,-1], type = "class")
-  #   table(mClass, test$class)
-  # }
 }
