@@ -5,7 +5,7 @@
 #'
 attKValue <- function(dataset) {
   param <- list(control = Weka_control(K = floor(sqrt(nrow(dataset))), X = T))
-  obj[4] <<- c(learner("IBk", param))
+  return(c(learner("IBk", param)))
 }
 
 #' @description Predicted values of all instances of the data

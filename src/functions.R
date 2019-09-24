@@ -30,9 +30,9 @@ calcLocalAcc <- function(c, iniLabDB, trainSet) {
 #'
 confusionMatrix <- function(model, testDB) {
   colunsNames <- colnames(testDB)
-  dbClassOff <- match("class", colunsNames)
+  dbClassOff <- match(label, colunsNames)
   testData <- testDB[, -dbClassOff]
-  type <- "class"
+  type <- label
   testDBClass <- testDB$class
   confusion <- table(predict(model, testData, type), testDBClass)
   return(confusion)
@@ -148,7 +148,7 @@ defines <- function() {
 #' atribute
 #'
 newBase <- function(labeledDB, trainId){
-  labeledDB[-trainId, "class"] <- NA
+  labeledDB[-trainId, label] <- NA
   return(labeledDB)
 }
 
@@ -235,8 +235,8 @@ storageSum <- function(probPreds, moda) {
 #' @return Return the accuracy of the dataset with the initial samples
 #' labeled.
 #'
-supAcc <- function(cl, iniLabDB){
-  std <- supModel(cl, iniLabDB)
+supAcc <- function(cl, iniLabDB) {
+  std <- supModel(cl@func, iniLabDB)
   supConfusionMatrix <- confusionMatrix(std, iniLabDB)
   return(getAcc(supConfusionMatrix, sum(supConfusionMatrix)))
 }
@@ -248,13 +248,13 @@ supAcc <- function(cl, iniLabDB){
 #'
 #' @return Return a supervised classifier.
 #'
-supModel <- function(cl, iniLabDB){
-  form = as.formula(paste(class, '~', '.'))
+supModel <- function(cl, iniLabDB) {
+  form = as.formula(paste(label, '~', '.'))
   switch(as.character(cl),
-         '1' = std <- naiveBayes(form, iniLabDB),
-         '2' = std <- JRip(form, iniLabDB),
-         '3' = std <- rpartXse(form, iniLabDB, se = 0.5),
-         '4' = {
+         'naiveBayes' = std <- naiveBayes(form, iniLabDB),
+         'JRip' = std <- JRip(form, iniLabDB),
+         'rpartXse' = std <- rpartXse(form, iniLabDB, se = 0.5),
+         'IBk' = {
            k <- floor(sqrt(nrow(iniLabDB)))
            std <- IBk(form, iniLabDB, control = Weka_control(K = k, X = TRUE))
          }
