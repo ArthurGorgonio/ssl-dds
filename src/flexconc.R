@@ -178,7 +178,7 @@ d <- function(originalDB) {
 #' @param learner A classifier model to be trained each iteration.
 #' @param predFunc The function that classifier predict the class of a sample
 #'  and the confidence rate of the prediction.
-#' @param minSamplesClass The minimum amount of the samples per class.
+#' @param nSamplesClass The minimum amount of the samples per class.
 #' @param initialAcc The accuracy of the initial labeled samples.
 #' @param method The choosed algorithm (FlexCon-C1(s), FlexCon-C1(v) or 
 #'  FlexCon-C2)
@@ -189,7 +189,7 @@ d <- function(originalDB) {
 #'
 #' @return A trained model to classify samples.
 #'
-flexConC <- function(learner, predFunc, minSamplesClass, initialAcc, method,
+flexConC <- function(learner, predFunc, nSamplesClass , initialAcc, method,
                      data, sup, classiNumber, cr) {
   # Initial setup, this is equal in all methods FlexCon-C1 and FlexCon-C2
   defaultSup <- sup
@@ -198,7 +198,8 @@ flexConC <- function(learner, predFunc, minSamplesClass, initialAcc, method,
   maxIts <- 100
   verbose <- TRUE
   it <- 0
-  nSamplesClass <- ddply(data, ~class, summarise, samplesClass = length(class))
+  minSamplesClass
+  
   nClass <- NROW(nSamplesClass) - 1
   lenLabeled <- 0
   totalLab <- 0

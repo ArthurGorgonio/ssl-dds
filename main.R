@@ -11,7 +11,7 @@ setWorkspace <- function() {
 
 shuffleClassify <- function(size) {
   typeClassify <- 1:length(obj)
-  return(sample(typeClassify, size))
+  return(sample(typeClassify, size, T))
 }
 
 setWorkspace()
@@ -25,18 +25,20 @@ meansFlexConC1S <- c()
 meansFlexConC1V <- c()
 databases <- list.files(path = "../datasets")
 for (iniLab in 1:5) {
-  iniLab <- 1
+  #' iniLab <- 1
   ratio <- iniLab * 0.05
   for (dataset in databases) {
-    dataset <- databases[1]
+    #' dataset <- databases[1]
     originalDB <- readData(dataset)
     while (!(originalDB$finished)) {
+      #' TODO count the number of samples in each class, after this use a 
+      #' percentage (i.e. 10%) of the samples in minoritary class to be a
+      #' threshold to call the validClassify function
+      <- ddply(data, ~class, summarise, samplesClass = length(class))
       if (originalDB$processed == 0) {
         classify <- shuffleClassify(3)
-        #' TODO length(myLearner) return 3 - classifiers trained with FlexCon-C
       } else {
         classify <- shuffleClassify(1)
-        #' 1 classifier trained with FlexCon-C
       }
       myLearner <- obj[classify]
       myFuncs <- funcType[classify]
@@ -51,19 +53,21 @@ for (iniLab in 1:5) {
       #' iNeed
       #'
       folds <- stratifiedKFold(dataL, dataL$class)
-      fold <- folds[[1]]
+      #' fold <- folds[[1]]
       for (fold in folds) {
         train <- dataL[-fold, ]
         test <- dataL[fold, ]
-        allIds <- holdout(train$class, ratio = ((iniLab * 5) / 100))
+        allIds <- holdout(train$class, ratio)
         labelIds <- allIds$tr
         data <- newBase(train, labelIds)
-        #' 
+        #' learner <- myLearner[[1]]
         for (learner in myLearner) {
           initialAcc <- supAcc(learner, dataL[labelIds, ])
-          
+          model <- flexConC(learner, myFuncs[match(list(learner), myLearner)], 
+                            initialAcc,
+                            "1", data, labelIds, learner@func, 5)
         }
-        
+
         #' TODO below checklist:
         #'  [X] Split the `train` into label and unlabel sets.
         #'  [X] Call training script to create the ensemble (3 instances).

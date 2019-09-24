@@ -7,15 +7,16 @@
 #' @return Accuracy of the model trained with a sample set `trainSet`.
 #'
 calcLocalAcc <- function(c, iniLabDB, trainSet) {
-  if (c == 1) {
-    classifier <- naiveBayes(as.factor(label) ~ ., trainSet)
-  } else if (c == 2) {
-    classifier <- JRip(as.factor(label) ~ ., trainSet)
-  } else if (c == 3) {
-    classifier <- rpartXse(as.factor(label) ~ ., trainSet)
-  } else if (c == 4) {
-    classifier <- IBk(as.factor(label) ~ ., trainSet)
-  }
+  form = as.formula(paste(label, '~', '.'))
+  switch(as.character(c),
+         'naiveBayes' = std <- naiveBayes(form, trainSet),
+         'JRip' = std <- JRip(form, trainSet),
+         'rpartXse' = std <- rpartXse(form, trainSet, se = 0.5),
+         'IBk' = {
+           k <- floor(sqrt(nrow(iniLabDB)))
+           std <- IBk(form, trainSet, control = Weka_control(K = k, X = TRUE))
+         }
+  )
   matriz <- table(predict(classifier, iniLabDB), iniLabDB$class)
   localAcc <- ((sum(diag(matriz)) / length(iniLabDB$class)) * 100)
   return(localAcc)
