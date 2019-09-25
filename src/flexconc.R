@@ -16,8 +16,7 @@ basicCheck <- function(data1It, dataXIt, confValue, moda, comparation) {
   zConfPred <- c()
   lvls <- match(dataXIt$id, data1It$id)
   for (index in 1:length(lvls)) {
-    if (letCheck(data1It, dataXIt, confValue, lvls[index], index, moda,
-                 comparation)) {
+    if (letCheck(data1It, dataXIt, confValue, lvls[index], index, comparation)) {
       pos <- pos + 1
       xId[pos] <- dataXIt[index, 3]
       if ((comparation == "1") || (comparation == "2")) {
@@ -39,13 +38,11 @@ basicCheck <- function(data1It, dataXIt, confValue, moda, comparation) {
 #' @param confValue The confidence rate, it's a threshold to select samples.
 #' @param index1It The sample from data1It that will be compared.
 #' @param index The sample from dataXIt that will be compared.
-#' @param moda The history of the choices since the first iteration.
 #' @param comparation The insertion rule to be used in the comparation.
 #'
 #' @return It calls the correspondent insertion rule.
 #'
-letCheck <- function(data1It, dataXIt, confValue, index1It, index, moda,
-                     comparation) {
+letCheck <- function(data1It, dataXIt, confValue, index1It, index, comparation) {
   switch(comparation,
          "1" = {
            return(classCheck(data1It, dataXIt, confValue, index1It, index))
@@ -54,12 +51,10 @@ letCheck <- function(data1It, dataXIt, confValue, index1It, index, moda,
            return(confCheck(data1It, dataXIt, confValue, index1It, index))
          },
          "3" = {
-           return(diffClassCheck(data1It, dataXIt, confValue, index1It, index,
-                                 moda))
+           return(diffClassCheck(data1It, dataXIt, confValue, index1It, index))
          },
          "4" = {
-           return(diffConfCheck(data1It, dataXIt, confValue, index1It, index,
-                                moda))
+           return(diffConfCheck(data1It, dataXIt, confValue, index1It, index))
          }
   )
 }
@@ -109,19 +104,17 @@ confCheck <- function(data1It, dataXIt, confValue, index1It, index) {
 }
 
 #' @description The rule is: Both samples do not have the same class, but both 
-#'  confidences are higher than threshold (confValue). The class are choosed
-#'  using (moda) matrix.
+#'  confidences are higher than threshold (confValue).
 #'
 #' @param data1It A data frame with all samples seted first iteration.
 #' @param dataXIt A data frame with remaining samples.
 #' @param confValue The confidence rate, it's a threshold to select samples.
 #' @param index1It The sample from data1It that will be compared.
 #' @param index The sample from dataXIt that will be compared.
-#' @param moda The history of the choices since the first iteration.
 #'
 #' @return Logical return if rule is satisfied.
 #'
-diffClassCheck <- function(data1It, dataXIt, confValue, index1It, index, moda) {
+diffClassCheck <- function(data1It, dataXIt, confValue, index1It, index) {
   if ((as.character(data1It[index1It, 1])
        != as.character(dataXIt[index, 1]))) {
     if ((data1It[index1It, 2] >= confValue)
@@ -133,19 +126,17 @@ diffClassCheck <- function(data1It, dataXIt, confValue, index1It, index, moda) {
 }
 
 #' @description  The rule is: Both samples do not have the same class and both 
-#'  confidences are lower than threshold (confValue). The class are choosed
-#'  using (moda) matrix.
+#'  confidences are lower than threshold (confValue).
 #'
 #' @param data1It A data frame with all samples seted first iteration.
 #' @param dataXIt A data frame with remaining samples.
 #' @param confValue The confidence rate, it's a threshold to select samples.
 #' @param index1It The sample from data1It that will be compared.
 #' @param index The sample from dataXIt that will be compared.
-#' @param moda The history of the choices since the first iteration.
 #'
 #' @return Logical return if rule is satisfied.
 #'
-diffConfCheck <- function(data1It, dataXIt, confValue, index1It, index, moda) {
+diffConfCheck <- function(data1It, dataXIt, confValue, index1It, index) {
   if ((as.character(data1It[index1It, 1])
        != as.character(dataXIt[index, 1]))) {
     if ((data1It[index1It, 2] >= confValue)
@@ -157,12 +148,12 @@ diffConfCheck <- function(data1It, dataXIt, confValue, index1It, index, moda) {
 }
 
 #' TODO function to generate moda matrix
-d <- function(originalDB) {
-  moda <- matrix(data = rep(0, length(originalDB$label)),
-                 ncol = length(levels(originalDB$label)),
+generateFashion <- function(originalDB) {
+  moda <- matrix(data = rep(0, length(originalDB$class)),
+                 ncol = length(levels(originalDB$class)),
                  nrow = NROW(originalDB), byrow = TRUE,
                  dimnames = list(row.names(originalDB),
-                                 sort(levels(originalDB$label),
+                                 sort(levels(originalDB$class),
                                       decreasing = FALSE)))
   rm(originalDB)
   return(moda)
@@ -178,7 +169,7 @@ d <- function(originalDB) {
 #' @param learner A classifier model to be trained each iteration.
 #' @param predFunc The function that classifier predict the class of a sample
 #'  and the confidence rate of the prediction.
-#' @param nSamplesClass The minimum amount of the samples per class.
+#' @param classDist The matrix with the amount of the samples per class.
 #' @param initialAcc The accuracy of the initial labeled samples.
 #' @param method The choosed algorithm (FlexCon-C1(s), FlexCon-C1(v) or 
 #'  FlexCon-C2)
@@ -189,8 +180,8 @@ d <- function(originalDB) {
 #'
 #' @return A trained model to classify samples.
 #'
-flexConC <- function(learner, predFunc, nSamplesClass , initialAcc, method,
-                     data, sup, classiNumber, cr) {
+flexConC <- function(learner, predFunc, classDist, initialAcc, method, data, sup,
+                    classiNumber, cr) {
   # Initial setup, this is equal in all methods FlexCon-C1 and FlexCon-C2
   defaultSup <- sup
   form <- as.formula("class ~ .")
@@ -198,9 +189,8 @@ flexConC <- function(learner, predFunc, nSamplesClass , initialAcc, method,
   maxIts <- 100
   verbose <- TRUE
   it <- 0
-  minSamplesClass
-  
-  nClass <- NROW(nSamplesClass) - 1
+  minClass <- floor(min(classDist$samplesClass) * 0.1)
+  nClass <- nrow(classDist)
   lenLabeled <- 0
   totalLab <- 0
   trainSet <<- c()
@@ -211,9 +201,7 @@ flexConC <- function(learner, predFunc, nSamplesClass , initialAcc, method,
   oldTrainSetIds <- c()
   # FlexCon-C1 only
   if ((method == "1") || (method == "2")) {
-    moda <- matrix(rep(0, nrow(originalDB)), nrow(originalDB),
-                   length(levels(originalDB$class)), T,
-                   list(rownames(originalDB), sort(levels(originalDB$class))))
+    moda <- generateFashion(data)
   }
   # FlexCon-C2 only
   addRotSuperv <- FALSE
@@ -269,9 +257,9 @@ flexConC <- function(learner, predFunc, nSamplesClass , initialAcc, method,
       oldTrainSetIds <- c(oldTrainSetIds, trainSetIds)
       trainSetIds <- (1:nrow(data))[-sup][newSamples]
       sup <- c(sup, trainSetIds)
-      validTtrain <- validTraining(data, trainSetIds, nClass, minSamplesClass)
+      validTtrain <- validTraining(data, trainSetIds, nClass, minClass)
       classify <- validClassification(validTrain, trainSetIds, oldTrainSetIds,
-                                      nClass, minSamplesClass)
+                                      nClass, minClass)
       if (classify) {
         localAcc <- calcLocalAcc(classiNumber, data[defaultSup, ], trainSetIds)
         confValue <- newConfidence(localAcc, initialAcc, confValue, cr)

@@ -2,7 +2,7 @@
 setWorkspace <- function() {
   mySystem <- Sys.info()
   if (mySystem[[1]] == "Linux") {
-    setwd("~/workspace/ssl-dds/src")
+    setwd("/workspace/ssl-dds/src")
   } else {
     stop("Setup right directory!\n")
   }
@@ -31,10 +31,9 @@ for (iniLab in 1:5) {
     #' dataset <- databases[1]
     originalDB <- readData(dataset)
     while (!(originalDB$finished)) {
-      #' TODO count the number of samples in each class, after this use a 
+      #' TODO count the number of samples in each class, after this use a
       #' percentage (i.e. 10%) of the samples in minoritary class to be a
-      #' threshold to call the validClassify function
-      <- ddply(data, ~class, summarise, samplesClass = length(class))
+      #' threshold to call the validClassify function.
       if (originalDB$processed == 0) {
         classify <- shuffleClassify(3)
       } else {
@@ -60,12 +59,13 @@ for (iniLab in 1:5) {
         allIds <- holdout(train$class, ratio)
         labelIds <- allIds$tr
         data <- newBase(train, labelIds)
+        classDist <- ddply(data, ~class, summarise, samplesClass = length(class))
         #' learner <- myLearner[[1]]
         for (learner in myLearner) {
-          initialAcc <- supAcc(learner, dataL[labelIds, ])
-          model <- flexConC(learner, myFuncs[match(list(learner), myLearner)], 
-                            initialAcc,
-                            "1", data, labelIds, learner@func, 5)
+          initialAcc <- supAcc(learner@func, data[labelIds, ])
+          model <- flexConC(learner, myFuncs[match(list(learner), myLearner)],
+                            classDist, initialAcc, "1", data, labelIds,
+                            learner@func, 5)
         }
 
         #' TODO below checklist:
