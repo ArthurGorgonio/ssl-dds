@@ -197,12 +197,11 @@ flexConC <- function(learner, predFunc, classDist, initialAcc, method, data,
   validTrain <<- FALSE
   classify <- TRUE
   trainSetIds <- c()
-  oldTrainSetIds <- c()
+  oldTrainSetIds <<- c()
   # FlexCon-C1 only
   if ((method == "1") || (method == "2")) {
     moda <- generateFashion(data)
   }
-  # FlexCon-C2 only
   addRotSuperv <- FALSE
   while ((it < maxIts) && (length(sup) != nrow(data))) {
     newSamples <- c()

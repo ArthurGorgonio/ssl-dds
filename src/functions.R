@@ -304,7 +304,7 @@ validClassification <- function(validTrainIt, localOldTrainSet, localTrainSet,
 validTraining <- function(data, trainSetIds, nClass, minSamplesClass) {
   samplesClass <- ddply(data[trainSetIds, ], ~class, summarise,
                         distictClass = length(class))
-  if (NROW(samplesClass) == nClass) {
+  if (nrow(samplesClass) == nClass) {
     for (x in 1:nrow(samplesClass)) {
       if (samplesClass$distictClass[x] < minSamplesClass) {
         return(FALSE)
