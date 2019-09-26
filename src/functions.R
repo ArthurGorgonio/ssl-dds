@@ -2,12 +2,11 @@
 #'
 #' @param c Classifier to be used.
 #' @param iniLabDB The data set with samples select before FlexConC call.
-#' @param trainSet The samples are select in a moment.
+#' @param trainSet The data set with the  select in a moment.
 #'
 #' @return Accuracy of the model trained with a sample set `trainSet`.
 #'
 calcLocalAcc <- function(c, iniLabDB, trainSet) {
-  form = as.formula(paste(label, '~', '.'))
   switch(as.character(c),
          'naiveBayes' = std <- naiveBayes(form, trainSet),
          'JRip' = std <- JRip(form, trainSet),
@@ -17,9 +16,8 @@ calcLocalAcc <- function(c, iniLabDB, trainSet) {
            std <- IBk(form, trainSet, control = Weka_control(K = k, X = TRUE))
          }
   )
-  matriz <- table(predict(classifier, iniLabDB), iniLabDB$class)
-  localAcc <- ((sum(diag(matriz)) / length(iniLabDB$class)) * 100)
-  return(localAcc)
+  confMat <- confusionMatrix(std, iniLabDB)
+  return(getAcc(confMat))
 }
 
 #' @description Generate the confusion matrix of the model.
@@ -81,12 +79,11 @@ generateProbPreds <- function(model, dataUnl, predFunc) {
 #' @description Calculate the acc of the main diagonal of the matrix.
 #'
 #' @param matrix The confusion matrix of a model.
-#' @param all The sum of the confussion matrix.
 #'
 #' @return The accuracy.
 #'
-getAcc <- function(matrix, all) {
-  acc <- ((sum(diag(matrix)) / all) * 100)
+getAcc <- function(matrix) {
+  acc <- ((sum(diag(matrix)) / sum(matrix)) * 100)
   return(acc)
 }
 
@@ -116,6 +113,7 @@ defines <- function() {
   accC1S <<- c()
   accC1V <<- c()
   accC2 <<- c()
+  form <<- as.formula("class ~ .")
   # FlexCon-C1 variables
   globalIt <<- c()
   db <<- c()
@@ -237,9 +235,9 @@ storageSum <- function(probPreds, moda) {
 #' labeled.
 #'
 supAcc <- function(cl, iniLabDB) {
-  std <- supModel(cl@func, iniLabDB)
+  std <- supModel(cl, iniLabDB)
   supConfusionMatrix <- confusionMatrix(std, iniLabDB)
-  return(getAcc(supConfusionMatrix, sum(supConfusionMatrix)))
+  return(getAcc(supConfusionMatrix))
 }
 
 #' @description A supervised model trained with the initial samples.
@@ -250,7 +248,6 @@ supAcc <- function(cl, iniLabDB) {
 #' @return Return a supervised classifier.
 #'
 supModel <- function(cl, iniLabDB) {
-  form = as.formula(paste(label, '~', '.'))
   switch(as.character(cl),
          'naiveBayes' = std <- naiveBayes(form, iniLabDB),
          'JRip' = std <- JRip(form, iniLabDB),
@@ -299,16 +296,16 @@ validClassification <- function(validTrainIt, localOldTrainSet, localTrainSet,
 #'
 #' @param data The data set with all samples.
 #' @param trainSetIds The ids of the selected samples to be used in train.
-#' @param Nclass The number of the distinct classes in the data set.
+#' @param nClass The number of the distinct classes in the data set.
 #' @param minSamplesClass The min samples of each class that training require.
 #'
 #' @return Logical return training is valid.
 #'
-validTraining <- function(data, trainSetIds, Nclass, minSamplesClass) {
+validTraining <- function(data, trainSetIds, nClass, minSamplesClass) {
   samplesClass <- ddply(data[trainSetIds, ], ~class, summarise,
                         distictClass = length(class))
-  if (NROW(samplesClass) == Nclass) {
-    for (x in 1:NROW(samplesClass)) {
+  if (NROW(samplesClass) == nClass) {
+    for (x in 1:nrow(samplesClass)) {
       if (samplesClass$distictClass[x] < minSamplesClass) {
         return(FALSE)
       }

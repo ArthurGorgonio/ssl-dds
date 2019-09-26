@@ -1,13 +1,12 @@
-#' @description This function check the OS and change work directory
+#' @description This function check the actual directory has a subdir called src
+#'  if exists it's a new working directory
 setWorkspace <- function() {
-  mySystem <- Sys.info()
-  if (mySystem[[1]] == "Linux") {
-    setwd("/workspace/ssl-dds/src")
+  if ("src" %in% list.dirs(full.names = F)) {
+    setwd("src")
   } else {
-    stop("Setup right directory!\n")
+    stop("Please move to the right directory!\n")
   }
 }
-
 
 shuffleClassify <- function(size) {
   typeClassify <- 1:length(obj)
@@ -25,15 +24,10 @@ meansFlexConC1S <- c()
 meansFlexConC1V <- c()
 databases <- list.files(path = "../datasets")
 for (iniLab in 1:5) {
-  #' iniLab <- 1
   ratio <- iniLab * 0.05
   for (dataset in databases) {
-    #' dataset <- databases[1]
     originalDB <- readData(dataset)
     while (!(originalDB$finished)) {
-      #' TODO count the number of samples in each class, after this use a
-      #' percentage (i.e. 10%) of the samples in minoritary class to be a
-      #' threshold to call the validClassify function.
       if (originalDB$processed == 0) {
         classify <- shuffleClassify(3)
       } else {
@@ -52,28 +46,33 @@ for (iniLab in 1:5) {
       #' iNeed
       #'
       folds <- stratifiedKFold(dataL, dataL$class)
-      #' fold <- folds[[1]]
-      for (fold in folds) {
-        train <- dataL[-fold, ]
-        test <- dataL[fold, ]
-        allIds <- holdout(train$class, ratio)
-        labelIds <- allIds$tr
-        data <- newBase(train, labelIds)
-        classDist <- ddply(data, ~class, summarise, samplesClass = length(class))
-        #' learner <- myLearner[[1]]
-        for (learner in myLearner) {
+      for (learner in myLearner) {
+        for (fold in folds) {
+          train <- dataL[-fold, ]
+          test <- dataL[fold, ]
+          trainIds <- holdout(train$class, ratio)
+          labelIds <- trainIds$tr
+          data <- newBase(train, labelIds)
+          classDist <- ddply(data[labelIds, ], ~class, summarise,
+                             samplesClass = length(class))
           initialAcc <- supAcc(learner@func, data[labelIds, ])
           model <- flexConC(learner, myFuncs[match(list(learner), myLearner)],
                             classDist, initialAcc, "1", data, labelIds,
                             learner@func, 5)
+          modelSup <- supModel(learner@func, train)
+          confusionMatrix(model, test)  
+          confusionMatrix(modelSup, test)  
+          getAcc(confusionMatrix(model, test))
+          getAcc(confusionMatrix(modelSup, test))
         }
-
         #' TODO below checklist:
         #'  [X] Split the `train` into label and unlabel sets.
         #'  [X] Call training script to create the ensemble (3 instances).
-        #'  [ ] Add more each iteration of the method, if needed.
+        #'  [?] Add more each iteration of the method, if needed.
         #'  [ ] Also meansure the accuracy of each individual classifier.
         #'  [ ] Compare with oracle ensemble member.
+        #'  [ ] Storage all ten model per learner.
+        #'  [ ] Measure the best model, using Acc.
       }
     }
   }

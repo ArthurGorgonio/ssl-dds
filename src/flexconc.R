@@ -175,16 +175,15 @@ generateFashion <- function(originalDB) {
 #'  FlexCon-C2)
 #' @param data The data set with labeled and unlabeled samples.
 #' @param sup Ids of the labeled samples.
-#' @param classiNumber The numeber of the classifier to train a sup model.
+#' @param classiName The numeber of the classifier to train a sup model.
 #' @param cr The changeRate param to flexibility this algorithm.
 #'
 #' @return A trained model to classify samples.
 #'
-flexConC <- function(learner, predFunc, classDist, initialAcc, method, data, sup,
-                    classiNumber, cr) {
+flexConC <- function(learner, predFunc, classDist, initialAcc, method, data,
+                     sup, classiName, cr) {
   # Initial setup, this is equal in all methods FlexCon-C1 and FlexCon-C2
   defaultSup <- sup
-  form <- as.formula("class ~ .")
   confValue <- 0.95
   maxIts <- 100
   verbose <- TRUE
@@ -194,9 +193,9 @@ flexConC <- function(learner, predFunc, classDist, initialAcc, method, data, sup
   lenLabeled <- 0
   totalLab <- 0
   trainSet <<- c()
+  oldTrainSetIds <- c()
   validTrain <<- FALSE
   classify <- TRUE
-  sup <- which(!is.na(data[, as.character(form[[2]])]))
   trainSetIds <- c()
   oldTrainSetIds <- c()
   # FlexCon-C1 only
@@ -207,7 +206,6 @@ flexConC <- function(learner, predFunc, classDist, initialAcc, method, data, sup
   addRotSuperv <- FALSE
   while ((it < maxIts) && (length(sup) != nrow(data))) {
     newSamples <- c()
-    correct <- 0
     it <- it + 1
     model <- generateModel(learner, form, data[sup, ])
     probPreds <- generateProbPreds(model, data[-sup, ], predFunc)
@@ -232,36 +230,28 @@ flexConC <- function(learner, predFunc, classDist, initialAcc, method, data, sup
       )
     } else {
       probPreds1It <- probPreds
-      idSamples <- which(probPreds[, 2] >= confValue)
+      idSamples <- which(probPreds$pred >= confValue)
       newSamples <- probPreds[idSamples, ]
-    }
-    if (length(newSamples)) {
-      newData <- data[(1:nrow(data))[-sup][newSamples], as.character(form[2])]
+      }
+    if (nrow(newSamples)) {
       if (addRotSuperv) {
         addRotSuperv <- FALSE
-        newData <- as.character(probPredsSuperv[newSamples, 1])
-      } else {
-        newData <- as.character(probPreds[newSamples, 1])
       }
+      newData <- as.character(newSamples$cl)
+      data[newSamples$id, as.character(form[[2]])] <- newSamples$cl
       lenLabeled <- length(newData)
-      total_rot <- total_rot + lenLabeled
+      totalLab <- totalLab + lenLabeled
       correct <- 0
-      correct <- (training[(1:nrow(data))[-sup][newSamples],
-                           as.character(form[2])] == newData)
-      correctLen <- NROW(correct)
-      for (w in 1:correctLen) {
-        if (correct[w] == TRUE) {
-          correct <<- correct + 1
-        }
-      }
+      correct <- length(which(dataL[newSamples$id,
+                                    as.character(form[2])] == newData))
+      trainSetIds <- newSamples$id
       oldTrainSetIds <- c(oldTrainSetIds, trainSetIds)
-      trainSetIds <- (1:nrow(data))[-sup][newSamples]
       sup <- c(sup, trainSetIds)
-      validTtrain <- validTraining(data, trainSetIds, nClass, minClass)
+      validTrain <- validTraining(data, trainSetIds, nClass, minClass)
       classify <- validClassification(validTrain, trainSetIds, oldTrainSetIds,
                                       nClass, minClass)
       if (classify) {
-        localAcc <- calcLocalAcc(classiNumber, data[defaultSup, ], trainSetIds)
+        localAcc <- calcLocalAcc(classiName, data[defaultSup, ], data[sup, ])
         confValue <- newConfidence(localAcc, initialAcc, confValue, cr)
       }
     } else {
