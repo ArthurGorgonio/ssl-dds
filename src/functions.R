@@ -210,7 +210,7 @@ storageFashion <- function(probPreds, moda) {
 #' @param moda The history of the choices since the first iteration.
 #'
 #' @return The updated `moda` matrix using sum of the confidences.
-#'
+#' TODO review this function. It's can be wrong indexing of samples per batch.
 storageSum <- function(probPreds, moda) {
   distClass <- colnames(moda)
   for (x in 1:nrow(probPreds)) {
@@ -289,28 +289,24 @@ validClassification <- function(validTrainIt, localOldTrainSet, localTrainSet,
   return(FALSE)
 }
 
-#' @description Check if exists a min accetable samples per class.
+#' @description TODO Review: Check if exists a min accetable samples per class.
 #' o treino só é válido se todas as classes estiverem representadas no conj.
 #' de treimento e se a quantidade de exemplos de cada classe for no mínimo (a qtdade
 #' de exemplos da classe com menor representação no conj. ini. rot.?)
 #'
 #' @param data The data set with all samples.
-#' @param trainSetIds The ids of the selected samples to be used in train.
+#' @param trainIds The real ids of the selected samples to classify in present
+#'   iteration.
 #' @param nClass The number of the distinct classes in the data set.
 #' @param minSamplesClass The min samples of each class that training require.
 #'
 #' @return Logical return training is valid.
 #'
-validTraining <- function(data, trainSetIds, nClass, minSamplesClass) {
-  samplesClass <- ddply(data[trainSetIds, ], ~class, summarise,
-                        distictClass = length(class))
-  if (nrow(samplesClass) == nClass) {
-    for (x in 1:nrow(samplesClass)) {
-      if (samplesClass$distictClass[x] < minSamplesClass) {
-        return(FALSE)
-      }
-    }
+validTraining <- function(data, trainIds, nClass, minSamplesClass) {
+  distClass <- ddply(data[trainIds, ], ~class, summarise, num = length(class))
+  if (distClass$num[which.min(distClass$num)] > minSamplesClass) {
     return(TRUE)
+  } else {
+    return(FALSE)
   }
-  return(FALSE)
 }
