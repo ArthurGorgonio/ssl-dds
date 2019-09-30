@@ -4,9 +4,11 @@ setWorkspace <- function() {
   if ("src" %in% list.dirs(full.names = F)) {
     setwd("src")
   } else {
-    stop("Please move to the right directory!\n")
+    cat("Please move to the right directory!\n")
   }
 }
+
+# seeds <- c(1, 49, 31, 435, 14134, 3431, 314, 7, 8999, 559)
 
 shuffleClassify <- function(size) {
   typeClassify <- 1:length(obj)
@@ -23,6 +25,18 @@ defines()
 meansFlexConC1S <- c()
 meansFlexConC1V <- c()
 databases <- list.files(path = "../datasets")
+set.seed(1)
+# # DEFINES!!
+# iniLab <- 1
+# dataset <- databases[1]
+# learner <- myLearner[[1]]
+# fold <- folds[[1]]
+# predFunc <- myFuncs[match(list(learner), myLearner)]
+# method <- "1"
+# sup <- labelIds
+# classiName <- learner@func
+# cr <- 5
+# ##
 for (iniLab in 1:5) {
   ratio <- iniLab * 0.05
   for (dataset in databases) {
