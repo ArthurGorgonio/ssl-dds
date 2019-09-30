@@ -208,8 +208,6 @@ flexConC <- function(learner, predFunc, classDist, initialAcc, method, data,
     it <- it + 1
     model <- generateModel(learner, form, data[sup, ])
     probPreds <- generateProbPreds(model, data[-sup, ], predFunc)
-    id <- getRealId(data, sup)
-    probPreds$id = id
     if (it > 1) {
       switch(method,
              "1" = {
@@ -233,22 +231,21 @@ flexConC <- function(learner, predFunc, classDist, initialAcc, method, data,
       newSamples <- probPreds[idSamples, ]
       }
     if (nrow(newSamples)) {
+      trainSetIds <- match(newSamples$id, rownames(data))
       if (addRotSuperv) {
         addRotSuperv <- FALSE
       }
       newData <- as.character(newSamples$cl)
-      data[newSamples$id, as.character(form[[2]])] <- newSamples$cl
+      data[trainSetIds, as.character(form[[2]])] <- newSamples$cl
       lenLabeled <- length(newData)
       totalLab <- totalLab + lenLabeled
-      correct <- 0
       correct <- length(which(dataL[newSamples$id,
                                     as.character(form[2])] == newData))
-      trainSetIds <- newSamples$id
-      oldTrainSetIds <- c(oldTrainSetIds, trainSetIds)
-      sup <- c(sup, trainSetIds)
       validTrain <- validTraining(data, trainSetIds, nClass, minClass)
       classify <- validClassification(validTrain, trainSetIds, oldTrainSetIds,
                                       nClass, minClass)
+      sup <- c(sup, trainSetIds)
+      oldTrainSetIds <- c(oldTrainSetIds, trainSetIds)
       if (classify) {
         localAcc <- calcLocalAcc(classiName, data[defaultSup, ], data[sup, ])
         confValue <- newConfidence(localAcc, initialAcc, confValue, cr)
