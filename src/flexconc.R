@@ -4,11 +4,11 @@
 #' @param dataXIt A data frame with remaining samples.
 #' @param confValue The confidence rate, it's a threshold to select samples.
 #' @param memo The history of the choices since the first iteration.
-#' @param comparation The insertion rule to be used in the comparation.
+#' @param comp The insertion rule to be used in the comparation.
 #'
 #' @return The selected samples using a matching insertion rule.
 #'
-basicCheck <- function(data1It, dataXIt, confValue, memo, comparation) {
+basicCheck <- function(data1It, dataXIt, confValue, memo, comp) {
   samplesData <- c()
   pos <- 0
   xId <- c()
@@ -16,13 +16,13 @@ basicCheck <- function(data1It, dataXIt, confValue, memo, comparation) {
   zConfPred <- c()
   lvls <- match(dataXIt$id, data1It$id)
   for (index in 1:length(lvls)) {
-    if (letCheck(data1It, dataXIt, confValue, lvls[index], index, comparation)) {
+    if (letCheck(data1It, dataXIt, confValue, lvls[index], index, comp)) {
       pos <- pos + 1
-      xId[pos] <- dataXIt[index, 3]
-      if ((comparation == "1") || (comparation == "2")) {
-        yCl[pos] <- dataXIt[index, 1]
+      xId[pos] <- as.numeric(levels(dataXIt$id))[dataXIt$id[index]]
+      if ((comp == "1") || (comp == "2")) {
+        yCl[pos] <- as.factor(dataXIt$cl[index])
       } else {
-        yCl[pos] <- searchClass(as.character(xId[pos]), memo)
+        yCl[pos] <- as.factor(searchClass(xId[pos], memo))
       }
       zConfPred[pos] <- dataXIt[index, 2]
     }
@@ -31,36 +31,8 @@ basicCheck <- function(data1It, dataXIt, confValue, memo, comparation) {
   return(samplesData)
 }
 
-#' @description This function choose the insertion rule.
-#'
-#' @param data1It A data frame with all samples seted first iteration.
-#' @param dataXIt A data frame with remaining samples.
-#' @param confValue The confidence rate, it's a threshold to select samples.
-#' @param index1It The sample from data1It that will be compared.
-#' @param index The sample from dataXIt that will be compared.
-#' @param comparation The insertion rule to be used in the comparation.
-#'
-#' @return It calls the correspondent insertion rule.
-#'
-letCheck <- function(data1It, dataXIt, confValue, index1It, index, comparation) {
-  switch(comparation,
-         "1" = {
-           return(classCheck(data1It, dataXIt, confValue, index1It, index))
-         },
-         "2" = {
-           return(confCheck(data1It, dataXIt, confValue, index1It, index))
-         },
-         "3" = {
-           return(diffClassCheck(data1It, dataXIt, confValue, index1It, index))
-         },
-         "4" = {
-           return(diffConfCheck(data1It, dataXIt, confValue, index1It, index))
-         }
-  )
-}
-
 #' @description The rule is: Both samples have the same class and both 
-#'  confidences are higher than threshold (confValue).
+#'  confidences are higher than threshold `confValue`.
 #'
 #' @param data1It A data frame with all samples seted first iteration.
 #' @param dataXIt A data frame with remaining samples.
@@ -71,8 +43,7 @@ letCheck <- function(data1It, dataXIt, confValue, index1It, index, comparation) 
 #' @return Logical return if rule is satisfied.
 #'
 classCheck <- function(data1It, dataXIt, confValue, index1It, index) {
-  if ((as.character(data1It[index1It, 1])
-       == as.character(dataXIt[index, 1]))) {
+  if ((as.character(data1It[index1It, 1]) == as.character(dataXIt[index, 1]))) {
     if ((data1It[index1It, 2] >= confValue)
         && (dataXIt[index, 2] >= confValue)) {
       return(TRUE)
@@ -82,7 +53,7 @@ classCheck <- function(data1It, dataXIt, confValue, index1It, index) {
 }
 
 #' @description The rule is: Both samples have the same class and just one 
-#'  confidences are higher than threshold (confValue).
+#'  confidences are higher than threshold `confValue`.
 #'
 #' @param data1It A data frame with all samples seted first iteration.
 #' @param dataXIt A data frame with remaining samples.
@@ -93,8 +64,7 @@ classCheck <- function(data1It, dataXIt, confValue, index1It, index) {
 #' @return Logical return if rule is satisfied.
 #'
 confCheck <- function(data1It, dataXIt, confValue, index1It, index) {
-  if ((as.character(data1It[index1It, 1])
-       == as.character(dataXIt[index, 1]))) {
+  if ((as.character(data1It[index1It, 1]) == as.character(dataXIt[index, 1]))) {
     if ((data1It[index1It, 2] >= confValue)
         || (dataXIt[index, 2] >= confValue)) {
       return(TRUE)
@@ -104,7 +74,7 @@ confCheck <- function(data1It, dataXIt, confValue, index1It, index) {
 }
 
 #' @description The rule is: Both samples do not have the same class, but both 
-#'  confidences are higher than threshold (confValue).
+#'  confidences are higher than threshold `confValue`.
 #'
 #' @param data1It A data frame with all samples seted first iteration.
 #' @param dataXIt A data frame with remaining samples.
@@ -115,8 +85,7 @@ confCheck <- function(data1It, dataXIt, confValue, index1It, index) {
 #' @return Logical return if rule is satisfied.
 #'
 diffClassCheck <- function(data1It, dataXIt, confValue, index1It, index) {
-  if ((as.character(data1It[index1It, 1])
-       != as.character(dataXIt[index, 1]))) {
+  if ((as.character(data1It[index1It, 1]) != as.character(dataXIt[index, 1]))) {
     if ((data1It[index1It, 2] >= confValue)
         && (dataXIt[index, 2] >= confValue)) {
       return(TRUE)
@@ -126,7 +95,7 @@ diffClassCheck <- function(data1It, dataXIt, confValue, index1It, index) {
 }
 
 #' @description  The rule is: Both samples do not have the same class and both 
-#'  confidences are lower than threshold (confValue).
+#'  confidences are lower than threshold `confValue`.
 #'
 #' @param data1It A data frame with all samples seted first iteration.
 #' @param dataXIt A data frame with remaining samples.
@@ -137,8 +106,7 @@ diffClassCheck <- function(data1It, dataXIt, confValue, index1It, index) {
 #' @return Logical return if rule is satisfied.
 #'
 diffConfCheck <- function(data1It, dataXIt, confValue, index1It, index) {
-  if ((as.character(data1It[index1It, 1])
-       != as.character(dataXIt[index, 1]))) {
+  if ((as.character(data1It[index1It, 1]) != as.character(dataXIt[index, 1]))) {
     if ((data1It[index1It, 2] >= confValue)
         || (dataXIt[index, 2] >= confValue)) {
       return(TRUE)
@@ -147,15 +115,18 @@ diffConfCheck <- function(data1It, dataXIt, confValue, index1It, index) {
   return(FALSE)
 }
 
-#' TODO function to generate memo matrix
-generateFashion <- function(originalDB) {
-  memo <- matrix(data = rep(0, length(originalDB$class)),
-                 ncol = length(levels(originalDB$class)),
-                 nrow = NROW(originalDB), byrow = TRUE,
-                 dimnames = list(row.names(originalDB),
-                                 sort(levels(originalDB$class),
-                                      decreasing = FALSE)))
-  rm(originalDB)
+#' @description Generate a memorization matrix to store the label using some
+#'  condition (i.e. vote or sum of confidences).
+#'
+#' @param rawData The dataset of the unlabel and label samples.
+#' @param nClass The total of the classes in the dataset.
+#'
+#' @return A matrix (number of samples x number of distinct classes).
+#'
+generateMemory <- function(rawData, nClass) {
+  memo <- matrix(rep(0, nrow(rawData)), nrow(rawData), nClass, TRUE,
+                 list(rownames(rawData), sort(levels(rawData$class))))
+  rm(rawData)
   return(memo)
 }
 
@@ -177,30 +148,22 @@ generateFashion <- function(originalDB) {
 #' @param sup Ids of the labeled samples.
 #' @param classiName The numeber of the classifier to train a sup model.
 #' @param cr The changeRate param to flexibility this algorithm.
+#' @param confValue The confidence rate, it's a threshold to select samples.
+#' @param maxIts The max number of iterations.
 #'
-#' @return A trained model to classify samples.
+#' @return A trained `model` to classify samples.
 #'
 flexConC <- function(learner, predFunc, classDist, initialAcc, method, data,
-                     sup, classiName, cr) {
-  # Initial setup, this is equal in all methods FlexCon-C1 and FlexCon-C2
+                     sup, classiName, cr = 5, confValue = 0.95, maxIts = 100) {
   defaultSup <- sup
-  confValue <- 0.95
-  maxIts <- 100
-  verbose <- TRUE
   it <- 0
   minClass <- floor(min(classDist$samplesClass) * 0.1)
   nClass <- nrow(classDist)
-  lenLabeled <- 0
-  totalLab <- 0
-  trainSet <<- c()
-  oldTrainSetIds <- c()
-  validTrain <<- FALSE
-  classify <- TRUE
   trainSetIds <- c()
-  oldTrainSetIds <<- c()
+  oldTrainSetIds <- c()
   # FlexCon-C1 only
   if ((method == "1") || (method == "2")) {
-    memo <- generateFashion(data)
+    memo <- generateMemory(data, nClass)
   }
   addRotSuperv <- FALSE
   while ((it < maxIts) && (length(sup) != nrow(data))) {
@@ -213,36 +176,29 @@ flexConC <- function(learner, predFunc, classDist, initialAcc, method, data,
         memo <- updateMemory(probPreds, memo, method)
         newSamples <- flexConC1(probPreds1It, probPreds, confValue, memo)
       } else {
-        model_superv <- generateModel(learner, form, data[sup, ])
-        probPredsSuperv <- generateProbPreds(model_superv, data[-sup, ],
-                                             predFunc)
-        newSamples <- flexConC2(probPreds, probPredsSuperv, confValue)
+        modelSup <- generateModel(learner, form, data[sup, ])
+        probPredsSup <- generateProbPreds(modelSup, data[-sup, ], predFunc)
+        newSamples <- flexConC2(probPreds, probPredsSup, confValue)
       }
     } else {
       probPreds1It <- probPreds
-      idSamples <- which(probPreds$pred >= confValue)
-      newSamples <- probPreds[idSamples, ]
-      }
+      newSamples <- probPreds[which(probPreds$pred >= confValue), ]
+    }
     if (length(newSamples)) {
       trainSetIds <- match(newSamples$id, rownames(data))
       if (addRotSuperv) {
         addRotSuperv <- FALSE
       }
-      newData <- as.character(newSamples$cl)
-      data[trainSetIds, as.character(form[[2]])] <- newSamples$cl
-      lenLabeled <- length(newData)
-      totalLab <- totalLab + lenLabeled
-      correct <- length(which(dataL[newSamples$id,
-                                    as.character(form[2])] == newData))
-      validTrain <- validTraining(data, trainSetIds, nClass, minClass)
-      classify <- validClassification(validTrain, trainSetIds, oldTrainSetIds,
-                                      nClass, minClass)
+      data[trainSetIds, label] <- newSamples$cl
+      classify <- validClassification(data, trainSetIds, oldTrainSetIds, nClass,
+                                      minClass)
       sup <- c(sup, trainSetIds)
-      oldTrainSetIds <- c(oldTrainSetIds, trainSetIds)
       if (classify) {
-        classify <- FALSE
+        oldTrainSetIds <- c()
         localAcc <- calcLocalAcc(classiName, data[defaultSup, ], data[sup, ])
         confValue <- newConfidence(localAcc, initialAcc, confValue, cr)
+      } else {
+        oldTrainSetIds <- c(oldTrainSetIds, trainSetIds)
       }
     } else {
       confValue <- max(probPreds[, 2])
@@ -300,4 +256,33 @@ flexConC2 <- function(probPreds, probPredsSuperv, confValue) {
     }
   }
   return(newSamples)
+}
+
+
+#' @description This function choose the insertion rule.
+#'
+#' @param data1It A data frame with all samples seted first iteration.
+#' @param dataXIt A data frame with remaining samples.
+#' @param confValue The confidence rate, it's a threshold to select samples.
+#' @param index1It The sample from data1It that will be compared.
+#' @param index The sample from dataXIt that will be compared.
+#' @param comp The insertion rule to be used in the comparation.
+#'
+#' @return It calls the correspondent insertion rule.
+#'
+letCheck <- function(data1It, dataXIt, confValue, index1It, index, comp) {
+  switch(comp,
+         "1" = {
+           return(classCheck(data1It, dataXIt, confValue, index1It, index))
+         },
+         "2" = {
+           return(confCheck(data1It, dataXIt, confValue, index1It, index))
+         },
+         "3" = {
+           return(diffClassCheck(data1It, dataXIt, confValue, index1It, index))
+         },
+         "4" = {
+           return(diffConfCheck(data1It, dataXIt, confValue, index1It, index))
+         }
+  )
 }
