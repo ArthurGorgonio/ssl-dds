@@ -49,6 +49,43 @@ convertProbPreds <- function(probPreds) {
   return(probPreds)
 }
 
+#' @description Function to define constants in all code
+#'
+defines <- function() {
+  accC1S <<- c()
+  accC1V <<- c()
+  accC2 <<- c()
+  baseClassifiers <<- c(learner("naiveBayes", list()), learner("JRip", list()),
+            learner("rpartXse", list(se = 0.5)),
+            learner("IBk", list(control = Weka_control(K = 3, X = TRUE))))
+  ensemble <- c()
+  extention <<- ".csv"
+  label <<- "class"
+  form <<- as.formula("class ~ .")
+  funcType <<- c("raw", "probability", "prob", "probability")
+  # trainSet <<- c()
+  # training <<- c()
+  # # FlexCon-C1 variables
+  # globalIt <<- c()
+  # db <<- c()
+  # confValue <<- c()
+  # globalSamplasAdd <<- c()
+  # percentageLabelSamples <<- c()
+  # globalAcc <<- c()
+  # glocalCorrect <<- c()
+  # # FlexCon-C2 variables
+  # it_g_3 <<- c()
+  # bd_g_3 <<- c()
+  # thrConf_g_3 <<- c()
+  # nr_added_exs_g_3 <<- c()
+  # tx_g_3 <<- c()
+  # acc_g_3 <<- c()
+  # acertou_g_3 <<- c()
+  # grad_g <<- c()
+  # bd <<- c()
+  # tx <<- c()
+}
+
 #' @description Create a classifier from a data set.
 #'
 #' @param learner A classifier will be trained.
@@ -99,46 +136,8 @@ getRealId <- function(dataset, sup) {
   return(ids[-sup])
 }
 
-#' @description Function to define constants in all code
-#'
-defines <- function() {
-  ensemble <- c()
-  label <<- "class"
-  form <<- "class ~ ."
-  funcType <<- c("raw", "probability", "prob", "probability")
-  extention <<- ".csv"
-  baseClassifiers <<- c(learner("naiveBayes", list()), learner("JRip", list()),
-            learner("rpartXse", list(se = 0.5)),
-            learner("IBk", list(control = Weka_control(K = 3, X = TRUE))))
-  trainSet <<- c()
-  training <<- c()
-  accC1S <<- c()
-  accC1V <<- c()
-  accC2 <<- c()
-  form <<- as.formula("class ~ .")
-  # # FlexCon-C1 variables
-  # globalIt <<- c()
-  # db <<- c()
-  # confValue <<- c()
-  # globalSamplasAdd <<- c()
-  # percentageLabelSamples <<- c()
-  # globalAcc <<- c()
-  # glocalCorrect <<- c()
-  # # FlexCon-C2 variables
-  # it_g_3 <<- c()
-  # bd_g_3 <<- c()
-  # thrConf_g_3 <<- c()
-  # nr_added_exs_g_3 <<- c()
-  # tx_g_3 <<- c()
-  # acc_g_3 <<- c()
-  # acertou_g_3 <<- c()
-  # grad_g <<- c()
-  # bd <<- c()
-  # tx <<- c()
-}
-
 #' @description This function set the class atribute to NA without change the
-#' class of selected samples
+#'  class of selected samples
 #'
 #' @usage newBase(labeledDB, trainId)
 #'
@@ -220,8 +219,10 @@ supModel <- function(cl, iniLabDB) {
   return(std)
 }
 
-theBestModel <- function(trainedModels, accuracy) {
-  return(trainedModels[which.max(accuracy)])
+theBestModel <- function(ensemble, trainedModels, accuracy) {
+  name <- length(ensemble) + 1
+  list <- c(ensemble, trainedModels[which.max(accuracy)])
+  return()
 }
 
 #' @description Storage the vote of the classifier in each iteration.
@@ -253,28 +254,20 @@ updateMemory <- function(probPreds, memo, method) {
 #' @description Check if the classification is valid. If the train is not valid, 
 #'  combine all sets and try to train again.
 #'
-#' @param validTrainIt Check if the train is valid.
-#' @param localOldTrainSet Old vector with the samples to train.
-#' @param localTrainSet A vector with the samples to train.
+#' @param data The data set with all samples.
+#' @param trainSet A vector with the samples to train.
+#' @param oldTrainSet Old vector with the samples to train.
 #' @param nClass The total of the classes in the dataset.
-#' @param minSamplesClass The min samples of each class for training.
+#' @param minClass The min samples of each class for training.
 #'
 #' @return Logical return if the classification is valid.
 #'
-validClassification <- function(validTrainIt, localOldTrainSet, localTrainSet,
-                                nClass, minSamplesClass) {
-  if (validTrainIt) {
-    trainSet <<- localTrainSet
-    OldTrainSet <<- c()
-    changeTrainSet <<- TRUE
+validClassification <- function(data, trainSet, oldTrainSet, nClass, minClass) {
+  if (validTraining(data, trainSet, nClass, minClass)) {
     return(TRUE)
-  } else if (!is.null(nrow(localOldTrainSet))) {
-    trainSet <<- rbind(localTrainSet, localOldTrainSet)
-    validTrainIt <- validTraining(trainSet, nClass, minSamplesClass)
-    changeTrainSet <<- TRUE
-    if (validTrainIt) {
-      return(TRUE)
-    }
+  } else if (!(is.null(length(oldTrainSet)))) {
+    trainSet <- c(trainSet, oldTrainSet)
+    return(validTraining(data, trainSet, nClass, minClass))
   }
   return(FALSE)
 }
@@ -289,13 +282,13 @@ validClassification <- function(validTrainIt, localOldTrainSet, localTrainSet,
 #' @param trainIds The real ids of the selected samples to classify in present
 #'   iteration.
 #' @param nClass The number of the distinct classes in the data set.
-#' @param minSamplesClass The min samples of each class that training require.
+#' @param minClass The min samples of each class that training require.
 #'
 #' @return Logical return training is valid.
 #'
-validTraining <- function(data, trainIds, nClass, minSamplesClass) {
+validTraining <- function(data, trainIds, nClass, minClass) {
   distClass <- ddply(data[trainIds, ], ~class, summarise, num = length(class))
-  if (distClass$num[which.min(distClass$num)] > minSamplesClass) {
+  if (distClass$num[which.min(distClass$num)] > minClass) {
     return(TRUE)
   } else {
     return(FALSE)
