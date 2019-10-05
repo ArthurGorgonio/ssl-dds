@@ -102,10 +102,12 @@ getRealId <- function(dataset, sup) {
 #' @description Function to define constants in all code
 #'
 defines <- function() {
+  ensemble <- c()
   label <<- "class"
+  form <<- "class ~ ."
   funcType <<- c("raw", "probability", "prob", "probability")
   extention <<- ".csv"
-  obj <<- c(learner("naiveBayes", list()), learner("JRip", list()),
+  baseClassifiers <<- c(learner("naiveBayes", list()), learner("JRip", list()),
             learner("rpartXse", list(se = 0.5)),
             learner("IBk", list(control = Weka_control(K = 3, X = TRUE))))
   trainSet <<- c()
@@ -114,14 +116,14 @@ defines <- function() {
   accC1V <<- c()
   accC2 <<- c()
   form <<- as.formula("class ~ .")
-  # FlexCon-C1 variables
-  globalIt <<- c()
-  db <<- c()
-  confValue <<- c()
-  globalSamplasAdd <<- c()
-  percentageLabelSamples <<- c()
-  globalAcc <<- c()
-  glocalCorrect <<- c()
+  # # FlexCon-C1 variables
+  # globalIt <<- c()
+  # db <<- c()
+  # confValue <<- c()
+  # globalSamplasAdd <<- c()
+  # percentageLabelSamples <<- c()
+  # globalAcc <<- c()
+  # glocalCorrect <<- c()
   # # FlexCon-C2 variables
   # it_g_3 <<- c()
   # bd_g_3 <<- c()
@@ -171,58 +173,16 @@ newConfidence <- function(localAcc, initialAcc, confValue, changeRate) {
   return(confValue)
 }
 
-#' @description Search in the 'moda' matrix, the higger value of the sample
+#' @description Search in the `memo` matrix, the higger value of the sample
 #'  (sum or vote).
 #'
 #' @param i The index will be searched.
-#' @param moda The matrix with the values.
+#' @param memo The matrix with the values.
 #'
 #' @return The label of the index `i`.
 #'
-searchClass <- function(i, moda) {
-  return(colnames(moda)[which.max(moda[i, ])])
-}
-
-#' @description Storage the vote of the classifier in each iteration.
-#'
-#' @param probPreds A data frame with remaining samples.
-#' @param moda The history of the choices since the first iteration.
-#'
-#' @return The updated `moda` matrix using fashion.
-#'
-storageFashion <- function(probPreds, moda) {
-  distClass <- colnames(moda)
-  for (x in 1:nrow(probPreds)) {
-    id <- as.numeric(probPreds[x, ncol(probPreds)])
-    for (y in 1:(length(distClass))) {
-      if (as.character(probPreds[x, 1]) == as.character(distClass[y])) {
-        moda[id, distClass[y]] <- moda[id, distClass[y]] + 1
-        break
-      }
-    }
-  }
-  return(moda)
-}
-
-#' @description Storage the sum of the confidences in each iteration.
-#'
-#' @param probPreds A data frame with remaining samples.
-#' @param moda The history of the choices since the first iteration.
-#'
-#' @return The updated `moda` matrix using sum of the confidences.
-#' TODO review this function. It's can be wrong indexing of samples per batch.
-storageSum <- function(probPreds, moda) {
-  distClass <- colnames(moda)
-  for (x in 1:nrow(probPreds)) {
-    id <- as.numeric(probPreds[x, ncol(probPreds)])
-    for (y in 1:length(distClass)) {
-      if (as.character(probPreds[x, 1]) == as.character(distClass[y])) {
-        moda[id, distClass[y]] <- moda[id, distClass[y]] + probPreds[x, 2]
-        break
-      }
-    }
-  }
-  return(moda)
+searchClass <- function(i, memo) {
+  return(colnames(memo)[which.max(memo[match(i, rownames(memo)), ])])
 }
 
 
@@ -260,6 +220,36 @@ supModel <- function(cl, iniLabDB) {
   return(std)
 }
 
+theBestModel <- function(trainedModels, accuracy) {
+  return(trainedModels[which.max(accuracy)])
+}
+
+#' @description Storage the vote of the classifier in each iteration.
+#'
+#' @param probPreds A data frame with remaining samples.
+#' @param memo The history of the choices since the first iteration.
+#' @param method The mode to adding the value to `memo` matrix.
+#'
+#' @return The updated `memo` matrix using fashion.
+#'
+updateMemory <- function(probPreds, memo, method) {
+  distClass <- colnames(memo)
+  for (x in 1:nrow(probPreds)) {
+    id <- match(probPreds[x, 3], rownames(memo))
+    for (y in 1:length(distClass)) {
+      if (as.character(probPreds[x, 1]) == as.character(distClass[y])) {
+        switch(method,
+               "1" = value <- probPreds[x, 2],
+               "2" = value <- 1
+        )
+        memo[id, distClass[y]] <- memo[id, distClass[y]] + value
+        break
+      }
+    }
+  }
+  return(memo)
+}
+
 #' @description Check if the classification is valid. If the train is not valid, 
 #'  combine all sets and try to train again.
 #'
@@ -291,7 +281,8 @@ validClassification <- function(validTrainIt, localOldTrainSet, localTrainSet,
 
 #' @description TODO Review: Check if exists a min accetable samples per class.
 #' o treino só é válido se todas as classes estiverem representadas no conj.
-#' de treimento e se a quantidade de exemplos de cada classe for no mínimo (a qtdade
+#' de treimento e se a quantidade de exemplos de cada classe for no mínimo (a
+#'  qtdade
 #' de exemplos da classe com menor representação no conj. ini. rot.?)
 #'
 #' @param data The data set with all samples.
