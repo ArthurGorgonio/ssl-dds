@@ -3,12 +3,12 @@
 #' @param data1It A data frame with all samples seted first iteration.
 #' @param dataXIt A data frame with remaining samples.
 #' @param confValue The confidence rate, it's a threshold to select samples.
-#' @param moda The history of the choices since the first iteration.
+#' @param memo The history of the choices since the first iteration.
 #' @param comparation The insertion rule to be used in the comparation.
 #'
 #' @return The selected samples using a matching insertion rule.
 #'
-basicCheck <- function(data1It, dataXIt, confValue, moda, comparation) {
+basicCheck <- function(data1It, dataXIt, confValue, memo, comparation) {
   samplesData <- c()
   pos <- 0
   xId <- c()
@@ -22,7 +22,7 @@ basicCheck <- function(data1It, dataXIt, confValue, moda, comparation) {
       if ((comparation == "1") || (comparation == "2")) {
         yCl[pos] <- dataXIt[index, 1]
       } else {
-        yCl[pos] <- as.character(searchClass(xId[pos], moda))
+        yCl[pos] <- searchClass(as.character(xId[pos]), memo)
       }
       zConfPred[pos] <- dataXIt[index, 2]
     }
@@ -147,16 +147,16 @@ diffConfCheck <- function(data1It, dataXIt, confValue, index1It, index) {
   return(FALSE)
 }
 
-#' TODO function to generate moda matrix
+#' TODO function to generate memo matrix
 generateFashion <- function(originalDB) {
-  moda <- matrix(data = rep(0, length(originalDB$class)),
+  memo <- matrix(data = rep(0, length(originalDB$class)),
                  ncol = length(levels(originalDB$class)),
                  nrow = NROW(originalDB), byrow = TRUE,
                  dimnames = list(row.names(originalDB),
                                  sort(levels(originalDB$class),
                                       decreasing = FALSE)))
   rm(originalDB)
-  return(moda)
+  return(memo)
 }
 
 #' @description The Flexive Confidence with Classifier (FlexCon-C) algorithm. It
@@ -200,7 +200,7 @@ flexConC <- function(learner, predFunc, classDist, initialAcc, method, data,
   oldTrainSetIds <<- c()
   # FlexCon-C1 only
   if ((method == "1") || (method == "2")) {
-    moda <- generateFashion(data)
+    memo <- generateFashion(data)
   }
   addRotSuperv <- FALSE
   while ((it < maxIts) && (length(sup) != nrow(data))) {
@@ -209,28 +209,21 @@ flexConC <- function(learner, predFunc, classDist, initialAcc, method, data,
     model <- generateModel(learner, form, data[sup, ])
     probPreds <- generateProbPreds(model, data[-sup, ], predFunc)
     if (it > 1) {
-      switch(method,
-             "1" = {
-               moda <- storageSum(probPreds, moda)
-               newSamples <- flexConC1(probPreds1It, probPreds, confValue, moda)
-             },
-             "2" = {
-               moda <- storageFashion(probPreds, moda)
-               newSamples <- flexConC1(probPreds1It, probPreds, confValue, moda)
-             },
-             "3" = {
-               model_superv <- generateModel(learner, form, data[sup, ])
-               probPredsSuperv <- generateProbPreds(model_superv, data[-sup, ],
-                                                    predFunc)
-               newSamples <- flexConC2(probPreds, probPredsSuperv, confValue)
-             }
-      )
+      if (method != "3") {
+        memo <- updateMemory(probPreds, memo, method)
+        newSamples <- flexConC1(probPreds1It, probPreds, confValue, memo)
+      } else {
+        model_superv <- generateModel(learner, form, data[sup, ])
+        probPredsSuperv <- generateProbPreds(model_superv, data[-sup, ],
+                                             predFunc)
+        newSamples <- flexConC2(probPreds, probPredsSuperv, confValue)
+      }
     } else {
       probPreds1It <- probPreds
       idSamples <- which(probPreds$pred >= confValue)
       newSamples <- probPreds[idSamples, ]
       }
-    if (nrow(newSamples)) {
+    if (length(newSamples)) {
       trainSetIds <- match(newSamples$id, rownames(data))
       if (addRotSuperv) {
         addRotSuperv <- FALSE
@@ -247,6 +240,7 @@ flexConC <- function(learner, predFunc, classDist, initialAcc, method, data,
       sup <- c(sup, trainSetIds)
       oldTrainSetIds <- c(oldTrainSetIds, trainSetIds)
       if (classify) {
+        classify <- FALSE
         localAcc <- calcLocalAcc(classiName, data[defaultSup, ], data[sup, ])
         confValue <- newConfidence(localAcc, initialAcc, confValue, cr)
       }
@@ -263,26 +257,25 @@ flexConC <- function(learner, predFunc, classDist, initialAcc, method, data,
 #' @param probPreds1It A data frame with all samples seted first iteration.
 #' @param probPreds A data frame with remaining samples.
 #' @param confValue The confidence rate, it's a threshold to select samples.
-#' @param moda The history of the choices since the first iteration.
+#' @param memo The history of the choices since the first iteration.
 #'
 #' @return The ids of the selected samples by insetion rules.
 #'
-flexConC1 <- function(probPreds1It, probPreds, confValue, moda) {
-  labeled <- basicCheck(probPreds1It, probPreds, confValue, moda, "1")
+flexConC1 <- function(probPreds1It, probPreds, confValue, memo) {
+  labeled <- basicCheck(probPreds1It, probPreds, confValue, memo, "1")
   lenLabeled <- length(labeled$id)
   if (lenLabeled == 0) {
-    labeled <- basicCheck(probPreds1It, probPreds, confValue, moda, "2")
+    labeled <- basicCheck(probPreds1It, probPreds, confValue, memo, "2")
     lenLabeled <- length(labeled$id)
     if (lenLabeled == 0) {
-      labeled <- basicCheck(probPreds1It, probPreds, confValue, moda, "3")
+      labeled <- basicCheck(probPreds1It, probPreds, confValue, memo, "3")
       lenLabeled <- length(labeled$id)
       if (lenLabeled == 0) {
-        labeled <- basicCheck(probPreds1It, probPreds, confValue, moda, "4")
+        labeled <- basicCheck(probPreds1It, probPreds, confValue, memo, "4")
       }
     }
   }
-  newSamples <- labeled$id
-  return(newSamples)
+  return(labeled)
 }
 
 # FlexCon-C2 funtion
