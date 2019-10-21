@@ -219,12 +219,6 @@ supModel <- function(cl, iniLabDB) {
   return(std)
 }
 
-theBestModel <- function(ensemble, trainedModels, accuracy) {
-  name <- length(ensemble) + 1
-  list <- c(ensemble, trainedModels[which.max(accuracy)])
-  return()
-}
-
 #' @description Storage the vote of the classifier in each iteration.
 #'
 #' @param probPreds A data frame with remaining samples.

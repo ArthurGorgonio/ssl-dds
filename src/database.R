@@ -25,9 +25,9 @@ getDatabase <- function(datasetName, fold = "../datasets") {
 #' @description This function read a data stream and transform to spetial type
 #'  of the dataframe.
 #'
-#' @param dbName the name of the data stream (data base).
+#' @param dbName The name of the data stream (data base).
 #'
-#' @return an object of the `datastream_dataframe` class.
+#' @return An object of the `datastream_dataframe` class.
 #'
 readData <- function(dbName, fold = "../datasets") {
   data <- datastream_dataframe(factorise(getDatabase(dbName)))

@@ -3,9 +3,9 @@
 #'
 #' @usage distSamples (labels)
 #'
-#' @param labels the class column in the dataset
+#' @param labels The class column in the dataset
 #'
-#' @return a vector with the number of the samples of the each class
+#' @return A vector with the number of the samples of the each class
 #'
 distSamples <- function(labels) {
   x <- c()
@@ -20,10 +20,10 @@ distSamples <- function(labels) {
 #'
 #' @usage samplesPerClass (labels, k = 10)
 #'
-#' @param labels the class column in the dataset
-#' @param k the number of the folds to split the data
+#' @param labels The class column in the dataset
+#' @param k The number of the folds to split the data
 #'
-#' @return a vector with the number of the samples of each class than each fold
+#' @return A vector with the number of the samples of each class than each fold
 #'
 samplesPerClass <- function(labels, k) {
   vector <- c()
@@ -38,11 +38,11 @@ samplesPerClass <- function(labels, k) {
 #'
 #' @usage stratifiedKFold(database, labels, k = 10)
 #'
-#' @param database the database are you using without class column
-#' @param labels the class column in the dataset
-#' @param k the number of the folds to split the data
+#' @param database The database are you using without class column
+#' @param labels The class column in the dataset
+#' @param k The number of the folds to split the data
 #'
-#' @return a list with k sublists contains the samples
+#' @return A list with k sublists contains the samples
 #'
 #' @examples
 #' data <- iris[, 1:(length(iris)-1)]
@@ -51,9 +51,7 @@ samplesPerClass <- function(labels, k) {
 #' folds <- stratifiedKFold(data, class, k = 10)
 #'
 stratifiedKFold <- function(database, labels, k = 10) {
-  if (k <= 0) {
-    stop("K need to be higger than 0")
-  } else {
+  if (k > 1) {
     folds <- c()
     namesId <- row.names(database)
     eachClass <- samplesPerClass(labels, k)
@@ -85,5 +83,7 @@ stratifiedKFold <- function(database, labels, k = 10) {
       }
     }
     return(folds)
+  } else {
+    stop("K need to be higger than 1")
   }
 }

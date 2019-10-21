@@ -124,7 +124,7 @@ diffConfCheck <- function(data1It, dataXIt, confValue, index1It, index) {
 #' @return A matrix (number of samples x number of distinct classes).
 #'
 generateMemory <- function(rawData, nClass) {
-  memo <- matrix(rep(0, nrow(rawData)), nrow(rawData), nClass, TRUE,
+  memo <- matrix(rep(0, nrow(rawData)), nrow(rawData), nClass, FALSE,
                  list(rownames(rawData), sort(levels(rawData$class))))
   rm(rawData)
   return(memo)
