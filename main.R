@@ -30,20 +30,20 @@ for (iniLab in 1:5) {
   ratio <- iniLab * 0.05
   for (dataset in databases) {
     originalDB <- readData(dataset)
-    it <- 0
+    epoch <- 0
     ensemble <- c()
-    while (!(originalDB$finished)) {
-      it <- it + 1
+    while ((nrow(originalDB$data)) > (originalDB$state)) {
       if (originalDB$processed == 0) {
         typeClassifier <- shuffleClassify(3)
       } else {
         typeClassifier <- shuffleClassify(1)
       }
+      dataL <- getBatch(originalDB, 5000)
+      rownames(dataL) <- as.character(1:nrow(dataL))
+      epoch <- epoch + 1
       classifier <- baseClassifiers[typeClassifier]
       myFuncs <- funcType[typeClassifier]
-      dataL <- getBatch(originalDB, 500)
-      rownames(dataL) <- as.character(1:500)
-      needUpdate <- which(match(classifier, baseClassifiers) == 4)
+      needUpdate <- which(typeClassifier == 4)
       if (length(needUpdate)) {
         classifier[needUpdate] <- attKValue(dataL)
       }
@@ -63,14 +63,18 @@ for (iniLab in 1:5) {
           model <- flexConC(learner, myFuncs[match(list(learner), classifier)],
                             classDist, initialAcc, "1", data, labelIds,
                             learner@func, 5)
-          model <- supModel(learner@func, train)
+          # model <- supModel(learner@func, train)
           trainedModels <- c(trainedModels, list(model))
           accuracy <- c(accuracy, getAcc(confusionMatrix(model, test)))
         }
-        if (it > 1) {
+        if (epoch > 1) {
+          bestOracle <- trainedModels[which.max(accuracy)]
+          realClass <- dataL$class
+          dataL$class <- predictClass(bestOracle, dataL)
+          clAcc <- measureEnsemble(ensemble, dataL)
           #Adjust ensemble
           #' TODO When the ensemble need to be fitted:
-          #'  [ ] Mensure the oracle and all ensemble;
+          #'  [X] Mensure the oracle and all ensemble;
           #'  [ ] Determine a threshold to decides if necessary to change the
           #'       ensemble;
           #'  [ ] Determine the type of change (adding, substitute or remove) a
