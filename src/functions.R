@@ -28,12 +28,7 @@ calcLocalAcc <- function(c, iniLabDB, trainSet) {
 #' @return The confusion matrix.
 #'
 confusionMatrix <- function(model, testDB) {
-  colunsNames <- colnames(testDB)
-  dbClassOff <- match(label, colunsNames)
-  testData <- testDB[, -dbClassOff]
-  type <- label
-  testDBClass <- testDB$class
-  confusion <- table(predict(model, testData, type), testDBClass)
+  confusion <- table(predictClass(model, testDB), testDB$class)
   return(confusion)
 }
 
@@ -213,7 +208,7 @@ supModel <- function(cl, iniLabDB) {
          'rpartXse' = std <- rpartXse(form, iniLabDB, se = 0.5),
          'IBk' = {
            k <- floor(sqrt(nrow(iniLabDB)))
-           std <- IBk(form, iniLabDB, control = Weka_control(K = k, X = TRUE))
+           std <- IBk(form, iniLabDB, control = Weka_control(K = k))
          }
   )
   return(std)

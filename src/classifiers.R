@@ -5,7 +5,7 @@
 #'  best one.
 #' @param accuracy A vector with the accuracy per model in `trainedModels`.
 #'
-#' @return A new `ensemble` aggregating the best model aat ensemble. 
+#' @return A new `ensemble` aggregating the best model at ensemble. 
 #'
 addingEnsemble <- function(ensemble, trainedModels, accuracy) {
   list <- c(ensemble, trainedModels[which.max(accuracy)])
@@ -54,28 +54,43 @@ generatePredict <- function(model, data, funcType) {
 #'  data.
 #'
 #' @param ensemble The ensemble of classifiers which be used.
-#' @param dataL The current labeled batch of the data stream.
+#' @param dataOracle The current labeled batch using oracle classifier.
 #'
 #' @return A vector with the accuracy per classifier.
 #'
-measureEnsemble <- function(ensemble, dataL) {
+measureEnsemble <- function(ensemble, dataOracle) {
   accPerClassifier <- c()
   for (classi in ensemble) {
-    cm <- confusionMatrix(classi, dataL)
+    cm <- confusionMatrix(classi, dataOracle)
     acc <- getAcc(cm)
     accPerClassifier <- c(accPerClassifier, acc)
   }
   return(accPerClassifier)
 }
 
+#' @description Generate the precition on the dataset using a model.
+#'
+#' @param model A trained classifier will be tested.
+#' @param testDB The data set which the classifier will be evaluated.
+#'
+#' @return A dataset set predicted using the model.
+#'
+predictClass <- function(model, testDB) {
+  colunsNames <- colnames(testDB)
+  dbClassOff <- match("class", colunsNames)
+  testData <- testDB[, -dbClassOff]
+  prediction <- predict(model, testData, "class")
+  return(prediction)
+}
+
 #' @description Select the worst model of the ensemble and remove it.
 #'
 #' @param ensemble The ensemble.
-#' @param dataL The current labeled batch of the data stream.
+#' @param dataOracle The current labeled batch of the data stream.
 #'
 #' @return A new `ensemble` with the worst model removed of the ensemble. 
 #'
-removingEnsemble <- function(ensemble, dataL) {
+removingEnsemble <- function(ensemble, dataOracle) {
   classifiers <- measureEnsemble(ensemble, dataL)
   return(ensemble[-which.min(classifiers)])
 }
@@ -83,7 +98,7 @@ removingEnsemble <- function(ensemble, dataL) {
 #' @description Select the worst model of the ensemble and swap with best oracle.
 #'
 #' @param ensemble The ensemble.
-#' @param dataL The current labeled batch of the data stream.
+#' @param dataOracle The current labeled batch of the data stream.
 #' @param trainedModels A list of trained models that will be used to choose the
 #'  best one.
 #' @param accuracy A vector with the accuracy per model in `trainedModels`.
@@ -91,8 +106,8 @@ removingEnsemble <- function(ensemble, dataL) {
 #' @return A new `ensemble` with the worst model removed and adding the best
 #'  oracle in the ensemble.
 #'
-swapEnsemble <- function(ensemble, dataL, trainedModels, accuracy) {
-  ensemble <- removingEnsemble(ensemble, dataL)
+swapEnsemble <- function(ensemble, dataOracle, trainedModels, accuracy) {
+  ensemble <- removingEnsemble(ensemble, dataOracle)
   ensemble <- addingEnsemble(ensemble, trainedModels, accuracy)
   return(ensemble)
 }
