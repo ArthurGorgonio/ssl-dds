@@ -31,29 +31,33 @@ for (iniLab in 1:5) {
   for (dataset in databases) {
     originalDB <- readData(dataset)
     epoch <- 0
-    ensemble <- c()
+    ensemble <- list()
     while ((nrow(originalDB$data)) > (originalDB$state)) {
       if (originalDB$processed == 0) {
         typeClassifier <- shuffleClassify(3)
       } else {
         typeClassifier <- shuffleClassify(1)
       }
-      dataL <- getBatch(originalDB, 5000)
-      rownames(dataL) <- as.character(1:nrow(dataL))
+      allDataL <- getBatch(originalDB, 5000)
+      dataL <- holdout(allDataL$class, .8)
+      dataTrain <- allDataL[dataL$tr, ]
+      dataTest <- allDataL[dataL$ts, ]
+      rownames(dataTrain) <- as.character(1:nrow(dataTrain))
       epoch <- epoch + 1
       classifier <- baseClassifiers[typeClassifier]
       myFuncs <- funcType[typeClassifier]
       needUpdate <- which(typeClassifier == 4)
       if (length(needUpdate)) {
-        classifier[needUpdate] <- attKValue(dataL)
+        classifier[needUpdate] <- attKValue(dataTrain)
       }
-      folds <- stratifiedKFold(dataL, dataL$class)
+      folds <- stratifiedKFold(dataTrain, dataTrain$class)
       for (learner in classifier) {
         trainedModels <- c()
-        accuracy <- c()
+        accFold <- c()
+        accTestDB <- c()
         for (fold in folds) {
-          train <- dataL[-fold, ]
-          test <- dataL[fold, ]
+          train <- dataTrain[-fold, ]
+          test <- dataTrain[fold, ]
           trainIds <- holdout(train$class, ratio)
           labelIds <- trainIds$tr
           data <- newBase(train, labelIds)
@@ -63,29 +67,35 @@ for (iniLab in 1:5) {
           model <- flexConC(learner, myFuncs[match(list(learner), classifier)],
                             classDist, initialAcc, "1", data, labelIds,
                             learner@func, 5)
-          # model <- supModel(learner@func, train)
-          trainedModels <- c(trainedModels, list(model))
-          accuracy <- c(accuracy, getAcc(confusionMatrix(model, test)))
+          # model <- supModel(learner@func, dataTrain)
+          trainedModels[[length(trainedModels) + 1]] <- model
+          accFold <- c(accFold, getAcc(confusionMatrix(model, test)))
+          accTestDB <- c(accTestDB, getAcc(confusionMatrix(model, dataTest)))
         }
+        cat("Classifier = ", learner@func, "\nAcc per Fold = ", accFold,
+            "\nAcc in Test = ", accTestDB, "\n\n")
         if (epoch > 1) {
-          bestOracle <- trainedModels[which.max(accuracy)]
-          realClass <- dataL$class
-          dataL$class <- predictClass(bestOracle, dataL)
-          clAcc <- measureEnsemble(ensemble, dataL)
+          bestOracle <- trainedModels[which.max(accTestDB)]
+          realClass <- dataTrain$class
+          dataTrain$class <- predictClass(bestOracle, dataTrain)
+          # ensemble predict
+          
+          clAcc <- measureEnsemble(ensemble, dataTrain)
+          ensemble <- swapEnsemble(ensemble, dataTrain, trainedModels, accTestDB)
           #Adjust ensemble
           #' TODO When the ensemble need to be fitted:
           #'  [X] Mensure the oracle and all ensemble;
-          #'  [ ] Determine a threshold to decides if necessary to change the
+          #'  [X] Determine a threshold to decides if necessary to change the
           #'       ensemble;
           #'  [ ] Determine the type of change (adding, substitute or remove) a
           #'       model from the ensemble;
           #'       [X] adding;
           #'       [X] remove; strategy the worst classifier
-          #'       [ ] substitute;
-          #'        - [ ] worst, but the same type;
-          #'        - [ ] worst of any type;
+          #'       [~] substitute;
+          #'        - [~] worst, but the same type;
+          #'        - [X] worst of any type;
         } else {
-          ensemble <- addingEnsemble(ensemble, trainedModels, accuracy)
+          ensemble <- addingEnsemble(ensemble, trainedModels, accTestDB)
         }
         #Adjust ensemble
         #' TODO below checklist:
@@ -100,4 +110,10 @@ for (iniLab in 1:5) {
       }
     }
   }
+}
+
+
+
+for (learner in classifier) {
+  ensemble[[length(ensemble) + 1]] <- supModel(learner@func, dataTrain)
 }

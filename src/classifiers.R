@@ -8,8 +8,8 @@
 #' @return A new `ensemble` aggregating the best model at ensemble. 
 #'
 addingEnsemble <- function(ensemble, trainedModels, accuracy) {
-  list <- c(ensemble, trainedModels[which.max(accuracy)])
-  return(list)
+  ensemble[[length(ensemble) + 1]] <- trainedModels[which.max(accuracy)][[1]]
+  return(ensemble)
 }
 
 #' @description Funtion to set a new k value for each dataset, the value is
@@ -83,15 +83,27 @@ predictClass <- function(model, testDB) {
   return(prediction)
 }
 
+predictEnsemble <- function(ensemble, testDB) {
+  i <- 1
+  for (i in 1:nrow(testDB)) {
+    sample <- testDB[i,]
+    class <- c()
+    for (cl in ensemble) {
+      class <- c(class, predictClass(cl, sample))
+    }
+    
+  }
+}
+
 #' @description Select the worst model of the ensemble and remove it.
 #'
 #' @param ensemble The ensemble.
 #' @param dataOracle The current labeled batch of the data stream.
 #'
-#' @return A new `ensemble` with the worst model removed of the ensemble. 
+#' @return A new `ensemble` with the worst model removed of the ensemble.
 #'
 removingEnsemble <- function(ensemble, dataOracle) {
-  classifiers <- measureEnsemble(ensemble, dataL)
+  classifiers <- measureEnsemble(ensemble, dataOracle)
   return(ensemble[-which.min(classifiers)])
 }
 
