@@ -184,7 +184,7 @@ flexConC <- function(learner, predFunc, classDist, initialAcc, method, data,
       probPreds1It <- probPreds
       newSamples <- probPreds[which(probPreds$pred >= confValue), ]
     }
-    if (length(newSamples)) {
+    if ((length(newSamples) > 0) && (nrow(newSamples) > 0)) {
       trainSetIds <- match(newSamples$id, rownames(data))
       if (addRotSuperv) {
         addRotSuperv <- FALSE
