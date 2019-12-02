@@ -38,7 +38,7 @@ for (iniLab in 1:5) {
       } else {
         typeClassifier <- shuffleClassify(1)
       }
-      allDataL <- getBatch(originalDB, 5000)
+      allDataL <- getBatch(originalDB, 500)
       dataL <- holdout(allDataL$class, .8)
       dataTrain <- allDataL[dataL$tr, ]
       dataTest <- allDataL[dataL$ts, ]
@@ -67,7 +67,7 @@ for (iniLab in 1:5) {
           model <- flexConC(learner, myFuncs[match(list(learner), classifier)],
                             classDist, initialAcc, "1", data, labelIds,
                             learner@func, 5)
-          # model <- supModel(learner@func, dataTrain)
+          model <- supModel(learner@func, dataTrain)
           trainedModels[[length(trainedModels) + 1]] <- model
           accFold <- c(accFold, getAcc(confusionMatrix(model, test)))
           accTestDB <- c(accTestDB, getAcc(confusionMatrix(model, dataTest)))
@@ -75,11 +75,12 @@ for (iniLab in 1:5) {
         cat("Classifier = ", learner@func, "\nAcc per Fold = ", accFold,
             "\nAcc in Test = ", accTestDB, "\n\n")
         if (epoch > 1) {
-          bestOracle <- trainedModels[which.max(accTestDB)]
+          bestOracle <- trainedModels[[which.max(accTestDB)]]
           realClass <- dataTrain$class
           dataTrain$class <- predictClass(bestOracle, dataTrain)
           # ensemble predict
-          
+          ensemblePred <- predictEnsemble(ensemble, dataTrain, nrow(classDist))
+          saveCM(ensemblePred, dataTrain$class)
           clAcc <- measureEnsemble(ensemble, dataTrain)
           ensemble <- swapEnsemble(ensemble, dataTrain, trainedModels, accTestDB)
           #Adjust ensemble

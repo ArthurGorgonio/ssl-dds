@@ -83,16 +83,21 @@ predictClass <- function(model, testDB) {
   return(prediction)
 }
 
-predictEnsemble <- function(ensemble, testDB) {
-  i <- 1
-  for (i in 1:nrow(testDB)) {
-    sample <- testDB[i,]
-    class <- c()
-    for (cl in ensemble) {
-      class <- c(class, predictClass(cl, sample))
+predictEnsemble <- function(ensemble, oracleDB, nClass) {
+  classPred <- generateMemory(oracleDB, nClass)
+  for (cl in ensemble) {
+    pred <- predictClass(cl, oracleDB)
+    pos <- match(predictClass(cl, oracleDB), colnames(classPred))
+    for (sample in 1:length(pos)) {
+      classPred[sample, pos[sample]] <- classPred[sample, pos[sample]] + 1
     }
-    
   }
+  allClassify <- c()
+  for (sample in 1:length(pos)) {
+    allClassify <- c(allClassify, which.max(classPred[sample,]))
+  }
+  ensemblePred <- factor(names(allClassify), levels(oracleDB$class))
+  return(ensemblePred)
 }
 
 #' @description Select the worst model of the ensemble and remove it.
