@@ -110,17 +110,6 @@ generateProbPreds <- function(model, dataUnl, predFunc) {
 
 #' @description Calculate the acc of the main diagonal of the matrix.
 #'
-#' @param matrix The confusion matrix of a model.
-#'
-#' @return The accuracy.
-#'
-getAcc <- function(matrix) {
-  acc <- ((sum(diag(matrix)) / sum(matrix)) * 100)
-  return(acc)
-}
-
-#' @description Calculate the acc of the main diagonal of the matrix.
-#'
 #' @param dataset The data set.
 #' @param sup The ids of the labeled samples.
 #'
