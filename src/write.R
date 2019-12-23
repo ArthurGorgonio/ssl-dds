@@ -1,8 +1,14 @@
-saveCM <- function(ensemblePred, oraclePred, iter) {
+saveCM <- function(ensemblePred, oraclePred, iter, dataName) {
   cm <- table(ensemblePred, oraclePred)
   msg <- paste("Iteration:", iter)
-  write(msg, file = "text.txt", append = T)
-  write.table(paste(getAcc(cm),"%"), file = "text.txt", append = T, row.names = F, col.names = F)
+  archiveName <- paste(dataName, "txt", collapse = "", sep = ".")
+  writeArchive(archiveName, "../results/", msg)
+  writeArchive(archiveName, "../results/", paste(getAcc(cm),"%"))
+}
+
+ensembleChange <- function(dataName, detail) {
+  archiveName <- paste(dataName, "txt", collapse = "", sep = ".")
+  writeArchive(archiveName, "../results/", detail)
 }
 
 #' @description Write in the output file the content.
@@ -13,7 +19,8 @@ saveCM <- function(ensemblePred, oraclePred, iter) {
 #' @param content The content of the file.
 #' @param append The method to write in the archive.
 #'
-writeArchive <- function(title, prefix, content, append = T, row = F, col = F, sep = " ") {
+writeArchive <- function(title, prefix, content, append = T, row = F, col = F,
+                         sep = " ") {
   write.table(content, paste(prefix, title, sep = "/"), append, sep = sep,
               row.names = row,  col.names = col)
 }
