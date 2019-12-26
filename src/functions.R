@@ -7,15 +7,7 @@
 #' @return Accuracy of the model trained with a sample set `trainSet`.
 #'
 calcLocalAcc <- function(c, iniLabDB, trainSet) {
-  switch(as.character(c),
-         'naiveBayes' = std <- naiveBayes(form, trainSet),
-         'JRip' = std <- JRip(form, trainSet),
-         'rpartXse' = std <- rpartXse(form, trainSet, se = 0.5),
-         'IBk' = {
-           k <- floor(sqrt(nrow(iniLabDB)))
-           std <- IBk(form, trainSet, control = Weka_control(K = k, X = TRUE))
-         }
-  )
+  std <- J48(form, trainSet)
   confMat <- confusionMatrix(std, iniLabDB)
   return(getAcc(confMat))
 }
@@ -50,14 +42,12 @@ defines <- function() {
   accC1S <<- c()
   accC1V <<- c()
   accC2 <<- c()
-  baseClassifiers <<- c(learner("naiveBayes", list()), learner("JRip", list()),
-            learner("rpartXse", list(se = 0.5)),
-            learner("IBk", list(control = Weka_control(K = 3, X = TRUE))))
+  baseClassifiers <<- learner("J48", list())
   ensemble <- c()
   extention <<- ".csv"
   label <<- "class"
   form <<- as.formula("class ~ .")
-  funcType <<- c("raw", "probability", "prob", "probability")
+  funcType <<- "probability"
   # trainSet <<- c()
   # training <<- c()
   # # FlexCon-C1 variables
@@ -191,15 +181,7 @@ supAcc <- function(cl, iniLabDB) {
 #' @return Return a supervised classifier.
 #'
 supModel <- function(cl, iniLabDB) {
-  switch(as.character(cl),
-         'naiveBayes' = std <- naiveBayes(form, iniLabDB),
-         'JRip' = std <- JRip(form, iniLabDB),
-         'rpartXse' = std <- rpartXse(form, iniLabDB, se = 0.5),
-         'IBk' = {
-           k <- floor(sqrt(nrow(iniLabDB)))
-           std <- IBk(form, iniLabDB, control = Weka_control(K = k))
-         }
-  )
+  std <- J48(form, iniLabDB)
   return(std)
 }
 
