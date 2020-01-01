@@ -15,6 +15,7 @@
 #' @param end Time when end the database processing.
 #' @param samplesPerIt A vector with the number of samples to be added in each 
 #'   iteration of the method.
+#' @param it the iteration of the stream.
 #' @param append An optional parameter to append the current content in file.
 #'   (Default TRUE).
 #' @param row An optional parameter to write rows in the file. (Default FALSE).
@@ -22,7 +23,7 @@
 #' @param sep An optional parameter to use in paste. (Default " " Single space).
 #'
 writeArchive <- function(title, prefix, dataName, acc, f1, preci, recall, begin,
-                         end, append = T, row = F, col = F, sep = " ") {
+                         end, it, append = T, row = F, col = F, sep = " ") {
   acc <- round(acc, 4)
   f1 <- round(f1, 4)
   preci <- round(preci, 4)
@@ -34,7 +35,7 @@ writeArchive <- function(title, prefix, dataName, acc, f1, preci, recall, begin,
   dbName <- paste("@DATASET:", dataName)
   folds <- "@Folds\t: 10"
   version <- "@STvers\t: FlexCon-C1S"
-  headers <- paste(separ, dbName, folds, version, separ, metrics,
+  headers <- paste(separ, it, separ, dbName, folds, version, separ, metrics,
                    separ, sep = "\n")
   line <- c()
   for (i in 1:10) {
