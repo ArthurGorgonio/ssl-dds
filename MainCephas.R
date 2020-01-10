@@ -2,7 +2,7 @@
 #'  if exists it's a new working directory
 setWorkspace <- function() {
   files <- c("classifiers.R", "crossValidation.R", "database.R", "flexconc.R",
-  "functions.R", "MainCephas.R", "statistics.R", "utils.R", "write.R")
+  "functions.R", "statistics.R", "utils.R", "write.R")
   if ("src" %in% list.dirs(full.names = F)) {
     setwd("src")
   } else if (!all(files %in% list.files())) {
@@ -12,7 +12,7 @@ setWorkspace <- function() {
   }
 }
 
-setWorkspace()
+# setWorkspace()
 scripts <- list.files()
 for (scri in scripts) {
   source(scri)
@@ -27,6 +27,7 @@ for (dataset in databases) {
   begin <- Sys.time()
   dataName <- strsplit(dataset, ".", T)[[1]][1]
   originalDB <- read.arff(paste("../datasets", dataset, sep = "/"))
+  originalDB$class <- droplevels(originalDB$class)
   dataL <- holdout(originalDB$class, .9)
   dataTrain <- originalDB[dataL$tr, ]
   dataTest <- originalDB[dataL$ts, ]
@@ -44,10 +45,10 @@ for (dataset in databases) {
   for (fold in folds) {
     train <- dataTrain[-fold, ]
     test <- dataTrain[fold, ]
-    trainIds <- holdout(train$class, ratio)
+    trainIds <- holdout(train$class, ratio, mode = "random")
     labelIds <- trainIds$tr
     data <- newBase(train, labelIds)
-    classDist <- ddply(data[labelIds, ], ~class, summarise,
+    classDist <- ddply(train[, ], ~class, summarise,
                        samplesClass = length(class))
     initialAcc <- supAcc(learner@func, data[labelIds, ])
     model <- flexConC(learner, myFuncs, classDist, initialAcc, "1", data,
@@ -69,3 +70,4 @@ for (dataset in databases) {
   writeArchive("TestingUsingTestDB.txt", "../results/", dataName, accTestDB, 
                fmeasureTestDB, precisionTestDB, recallTestDB, begin, end)
 }
+

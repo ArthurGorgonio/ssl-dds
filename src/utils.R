@@ -1,8 +1,7 @@
 #' @description Install packages if it was not installed and load them.
 #'
 installNeedPacks <- function() {
-  packages <- c("plyr", "DMwR", "DMwR2", "RWeka", "rminer", "e1071", "ggplot2",
-                "PMCMR", "RMOA", "ssc", "scmamp")
+  packages <- c("plyr", "DMwR", "DMwR2", "RWeka", "rminer", "ssc")
   if (!require("BiocManager")) {
     install.packages("BiocManager")
   }

@@ -119,12 +119,12 @@ diffConfCheck <- function(data1It, dataXIt, confValue, index1It, index) {
 #'  condition (i.e. vote or sum of confidences).
 #'
 #' @param rawData The dataset of the unlabel and label samples.
-#' @param nClass The total of the classes in the dataset.
 #'
 #' @return A matrix (number of samples x number of distinct classes).
 #'
-generateMemory <- function(rawData, nClass) {
-  memo <- matrix(rep(0, nrow(rawData)), nrow(rawData), nClass, FALSE,
+generateMemory <- function(rawData) {
+  memo <- matrix(rep(0, nrow(rawData)), nrow(rawData), 
+                 length(levels(rawData$class)), FALSE,
                  list(rownames(rawData), sort(levels(rawData$class))))
   rm(rawData)
   return(memo)
@@ -163,7 +163,7 @@ flexConC <- function(learner, predFunc, classDist, initialAcc, method, data,
   oldTrainSetIds <- c()
   # FlexCon-C1 only
   if ((method == "1") || (method == "2")) {
-    memo <- generateMemory(data, nClass)
+    memo <- generateMemory(data)
   }
   addRotSuperv <- FALSE
   while ((it < maxIts) && (length(sup) != nrow(data))) {
