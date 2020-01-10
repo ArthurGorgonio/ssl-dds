@@ -204,7 +204,7 @@
 @attribute 'KURTOSIS ABOUT_MAJOR' real
 @attribute 'KURTOSIS ABOUT_MINOR' real
 @attribute 'HOLLOWS RATIO' real
-@attribute 'class' {opel,saab,bus,van}
+@attribute class {opel,saab,bus,van}
 
 @data
 95,48,83,178,72,10,162,42,20,159,176,379,184,70,6,16,187,197,van

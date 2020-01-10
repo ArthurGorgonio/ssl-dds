@@ -10,7 +10,7 @@
 @attribute becomeHistorically {1,2}
 @attribute area {1,2}
 @attribute areaLargestSpot {1,2}
-@attribute cClass {0,1,2,3,4,5,6,8}
+@attribute class {0,1,2,3,4,5,6,8}
 
 @data
 C,S,O,1,2,1,1,2,1,2,0
