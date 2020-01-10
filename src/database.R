@@ -12,12 +12,12 @@ getBatch <- function(database, n) {
 #' @description Read a data set from a arff file
 #'
 #' @param datasetName The name of the data set which be read.
-#' @param fold The fold location on the computer.
+#' @param path The location on the computer.
 #'
 #' @return The data set loaded in memory.
 #'
-getDatabase <- function(datasetName, fold = "../datasets") {
-  database <- read.arff(paste(fold, datasetName, sep = "/"))
+getDatabase <- function(datasetName, path = "../datasets") {
+  database <- read.arff(paste(path, datasetName, sep = "/"))
   return(database)
 }
 
@@ -26,10 +26,11 @@ getDatabase <- function(datasetName, fold = "../datasets") {
 #'  of the dataframe.
 #'
 #' @param dbName The name of the data stream (data base).
+#' @param path The location on the computer.
 #'
 #' @return An object of the `datastream_dataframe` class.
 #'
-readData <- function(dbName, fold = "../datasets") {
-  data <- datastream_dataframe(factorise(getDatabase(dbName)))
+readData <- function(dbName, path = "../datasets") {
+  data <- datastream_dataframe(factorise(getDatabase(dbName, path)))
   return(data)
 }

@@ -21,7 +21,7 @@ precision <- function(cm) {
   for (i in 1:nrow(cm)) {
     tp <- cm[i, i]
     fp <- sum(cm[i,]) - tp
-    if (!(fp == 0) && (tp == 0)) {
+    if (!((fp == 0) && (tp == 0))) {
       preci <- c(preci, (tp / (tp + fp)))
     } else {
       preci <- c(preci, 0)
