@@ -41,7 +41,11 @@ recall <- function(cm) {
   for (i in 1:nrow(cm)) {
     tp <- cm[i, i]
     fn <- sum(cm[,i]) - tp
-    recal <- c(recal, (tp / (tp + fn)))
+    if (!((fn == 0) && (tp == 0))) {
+      recal <- c(recal, (tp / (tp + fn)))
+    } else {
+      recal <- c(recal, 0)
+    }
   }
   return(sum(recal) / nrow(cm))
 }
