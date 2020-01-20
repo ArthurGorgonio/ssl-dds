@@ -79,7 +79,7 @@ predictClass <- function(model, testDB) {
   colunsNames <- colnames(testDB)
   dbClassOff <- match("class", colunsNames)
   testData <- testDB[, -dbClassOff]
-  prediction <- predict(model, testData, "class")
+  prediction <- predict(model, testData, "response")
   return(prediction)
 }
 

@@ -47,38 +47,21 @@ convertProbPreds <- function(probPreds) {
 #' @description Function to define constants in all code
 #'
 defines <- function() {
-  accC1S <<- c()
-  accC1V <<- c()
-  accC2 <<- c()
-  baseClassifiers <<- c(learner("naiveBayes", list()), learner("JRip", list()),
-            learner("rpartXse", list(se = 0.5)),
-            learner("IBk", list(control = Weka_control(K = 3, X = TRUE))))
+  baseClassifiers <<- c(
+    HoeffdingTree(control = MOAoptions(model = "HoeffdingTree")),
+    ActiveClassifier(control = MOAoptions(model = "ActiveClassifier")),
+    AccuracyWeightedEnsemble(control = 
+                               MOAoptions(model = "AccuracyWeightedEnsemble",
+                                          memberCount = 10, storedCount = 100,
+                                          chunkSize = dataLength)),
+    OzaBoostAdwin(control = MOAoptions(model = "OzaBoostAdwin")),
+    ADACC(control = MOAoptions(model = "ADACC"))
+    )
   ensemble <- c()
   extention <<- ".csv"
   label <<- "class"
   form <<- as.formula("class ~ .")
   funcType <<- c("raw", "probability", "prob", "probability")
-  # trainSet <<- c()
-  # training <<- c()
-  # # FlexCon-C1 variables
-  # globalIt <<- c()
-  # db <<- c()
-  # confValue <<- c()
-  # globalSamplasAdd <<- c()
-  # percentageLabelSamples <<- c()
-  # globalAcc <<- c()
-  # glocalCorrect <<- c()
-  # # FlexCon-C2 variables
-  # it_g_3 <<- c()
-  # bd_g_3 <<- c()
-  # thrConf_g_3 <<- c()
-  # nr_added_exs_g_3 <<- c()
-  # tx_g_3 <<- c()
-  # acc_g_3 <<- c()
-  # acertou_g_3 <<- c()
-  # grad_g <<- c()
-  # bd <<- c()
-  # tx <<- c()
 }
 
 #' @description Create a classifier from a data set.
