@@ -22,7 +22,7 @@ precision <- function(cm) {
     tryCatch({
         tp = cm[i, i]
       }, error = function(e) {
-        tp <- 0
+        tp = 0
       }
     )
     fp <- sum(cm[i,]) - tp
@@ -48,7 +48,7 @@ recall <- function(cm) {
       {
         tp = cm[i, i]
       }, error = function(e){
-        tp <- 0
+        tp = 0
       }
     )
     fn <- sum(cm[,i]) - tp
