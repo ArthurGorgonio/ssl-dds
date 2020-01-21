@@ -63,9 +63,13 @@ for (dataset in databases) {
         for (fold in folds) {
           train <- datastream_dataframe(data = dataTrain[-fold, ])
           test <- dataTrain[fold, ]
-          model <- trainMOA(model = mymodel, formula = as.formula("class ~ ."),
+          model <- trainMOA(model = learner, formula = as.formula("class ~ ."),
                             data = train, chunksize = dataLength)
+          
           cmFold <- confusionMatrix(model, test)
+          if (length(rownames(cmFold)) != length(colnames(cmFold))) {
+            cmFold <- fixCM(cmFold)
+          }
           cat("\n\tCM FOLD:\n")
           print(cmFold)
           accFold <- c(accFold, getAcc(cmFold))
@@ -73,6 +77,9 @@ for (dataset in databases) {
           precisionFold <- c(precisionFold, precision(cmFold))
           recallFold <- c(recallFold, recall(cmFold))
           cmTest <- confusionMatrix(model, dataTest)
+          if (length(rownames(cmTest)) != length(colnames(cmTest))) {
+            cmTest <- fixCM(cmTest)
+          }
           cat("\n\tCM TEST:\n")
           print(cmTest)
           accTest <- c(accTest, getAcc(cmTest))
@@ -81,7 +88,8 @@ for (dataset in databases) {
           recallTest <- c(recallTest, recall(cmTest))
         }
         end <- Sys.time()
-        fileName <- paste(dataName, dataLength, ".txt", sep = "")
+        fileName <- paste(dataName, toupper(learner$type), dataLength, ".txt",
+                          sep = "")
         writeArchive(paste("FOLD", fileName, sep = ""), "../results/", dataName,
                      accFold, fmeasureFold, precisionFold, recallFold, begin,
                      end, epoch)
