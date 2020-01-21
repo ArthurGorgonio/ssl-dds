@@ -68,14 +68,15 @@ stratifiedKFold <- function(database, labels, k = 10) {
       remainder <- c()
       for (lvls in levels(database$class)) {
         remainder <- c(remainder, list(sample(1:k, length(
-          which(database$class[as.integer(namesId)] == lvls)))))
+          which(database$class[as.integer(namesId)] == lvls)), replace = T)))
       }
       names(remainder) <- levels(database$class)
       for (label in names(remainder)) {
         if (length(remainder[[label]]) != 0) {
           for (k in remainder[[label]]) {
-            content <- sample(namesId[which(database[namesId, "class"]
-                                            == label)], 1)
+            content <- sample(namesId[which(database[as.integer(namesId),
+                                                     "class"] == label)], 1,
+                              replace = T)
             folds[[k]] <- c(folds[[k]], as.integer(content))
             namesId <- namesId[-which(namesId == content)]
           }
@@ -87,3 +88,4 @@ stratifiedKFold <- function(database, labels, k = 10) {
     stop("K need to be higger than 1")
   }
 }
+
