@@ -48,20 +48,37 @@ convertProbPreds <- function(probPreds) {
 #'
 defines <- function() {
   baseClassifiers <<- c(
-    HoeffdingTree(control = MOAoptions(model = "HoeffdingTree")),
-    ActiveClassifier(control = MOAoptions(model = "ActiveClassifier")),
-    AccuracyWeightedEnsemble(control = 
+    list(HoeffdingTree(control = MOAoptions(model = "HoeffdingTree"))),
+    list(ActiveClassifier(control = MOAoptions(model = "ActiveClassifier"))),
+    list(AccuracyWeightedEnsemble(control = 
                                MOAoptions(model = "AccuracyWeightedEnsemble",
                                           memberCount = 10, storedCount = 100,
-                                          chunkSize = dataLength)),
-    OzaBoostAdwin(control = MOAoptions(model = "OzaBoostAdwin")),
-    ADACC(control = MOAoptions(model = "ADACC"))
+                                          chunkSize = dataLength))),
+    list(OzaBoostAdwin(control = MOAoptions(model = "OzaBoostAdwin"))),
+    list(ADACC(control = MOAoptions(model = "ADACC")))
     )
   ensemble <- c()
   extention <<- ".csv"
   label <<- "class"
   form <<- as.formula("class ~ .")
   funcType <<- c("raw", "probability", "prob", "probability")
+}
+
+fixCM <- function(cm) {
+  if (nrow(cm) < ncol(cm)) {
+    truePos <- match(rownames(cm), colnames(cm))
+    newCM <- matrix(rep(0,2*ncol(cm)), nrow = ncol(cm), ncol = ncol(cm))
+    colnames(newCM) <- colnames(cm)
+    rownames(newCM) <- colnames(cm)
+    newCM[truePos,] <- cm
+  } else {
+    truePos <- match(colnames(cm), rownames(cm))
+    newCM <- matrix(rep(0,2*nrow(cm)), nrow = nrow(cm), ncol = nrow(cm))
+    colnames(newCM) <- rownames(cm)
+    rownames(newCM) <- rownames(cm)
+    newCM[, truePos] <- cm
+  }
+  return(newCM)
 }
 
 #' @description Create a classifier from a data set.
