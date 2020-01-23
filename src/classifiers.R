@@ -85,7 +85,11 @@ predictClass <- function(model, testDB) {
   }
   newP <- c()
   for (p in prediction) {
-    newP <- c(newP, p)
+    if (!(identical(p, character(0)))) {
+      newP <- c(newP, p)
+    } else {
+      newP <- c(newP, sample(levels(testDB$class), 1))
+    }
   }
   return(newP)
 }
