@@ -22,7 +22,7 @@ shuffleClassify <- function(size) {
 }
 
 
-# setWorkspace()
+setWorkspace()
 scripts <- list.files()
 for (scri in scripts) {
   source(scri)
@@ -31,71 +31,73 @@ rm(scripts, scri)
 meansFlexConC1S <- c()
 meansFlexConC1V <- c()
 databases <- list.files(path = "../datasets")
-dataLength <- 5000
-defines()
-for (dataset in databases) {
-  dataName <- strsplit(dataset, ".", T)[[1]][1]
-  cat(dataName)
-  for (seed in seeds) {
-    set.seed(seed)
-    originalDB <- readData(dataset)
-    epoch <- 0
-    while ((nrow(originalDB$data)) > (originalDB$state)) {
-      epoch <- epoch + 1
-      allDataL <- getBatch(originalDB, dataLength)
-      allDataL$class <- droplevels(allDataL$class)
-      begin <- Sys.time()
-      dataL <- holdout(allDataL$class, .75)
-      dataTrain <- allDataL[dataL$tr, ]
-      dataTest <- allDataL[dataL$ts, ]
-      rownames(dataTrain) <- as.character(1:nrow(dataTrain))
-      folds <- stratifiedKFold(dataTrain, dataTrain$class)
-      for (learner in baseClassifiers) {
-        trainedModels <- c()
-        accFold <- c()
-        fmeasureFold <- c()
-        precisionFold <- c()
-        recallFold <- c()
-        accTest <- c()
-        fmeasureTest <- c()
-        precisionTest <- c()
-        recallTest <- c()
-        for (fold in folds) {
-          train <- datastream_dataframe(data = dataTrain[-fold, ])
-          test <- dataTrain[fold, ]
-          model <- trainMOA(model = learner, formula = as.formula("class ~ ."),
-                            data = train, chunksize = dataLength)
-          
-          cmFold <- confusionMatrix(model, test)
-          if (length(rownames(cmFold)) != length(colnames(cmFold))) {
-            cmFold <- fixCM(cmFold)
+lengthBatch <- c(500, 5000)
+for (dataLength in lengthBatch) {
+  defines()
+  for (dataset in databases) {
+    dataName <- strsplit(dataset, ".", T)[[1]][1]
+    cat(dataName)
+    for (seed in seeds) {
+      set.seed(seed)
+      originalDB <- readData(dataset)
+      epoch <- 0
+      while ((nrow(originalDB$data)) > (originalDB$state)) {
+        epoch <- epoch + 1
+        allDataL <- getBatch(originalDB, dataLength)
+        allDataL$class <- droplevels(allDataL$class)
+        begin <- Sys.time()
+        dataL <- holdout(allDataL$class, .75)
+        dataTrain <- allDataL[dataL$tr, ]
+        dataTest <- allDataL[dataL$ts, ]
+        rownames(dataTrain) <- as.character(1:nrow(dataTrain))
+        folds <- stratifiedKFold(dataTrain, dataTrain$class)
+        for (learner in baseClassifiers) {
+          trainedModels <- c()
+          accFold <- c()
+          fmeasureFold <- c()
+          precisionFold <- c()
+          recallFold <- c()
+          accTest <- c()
+          fmeasureTest <- c()
+          precisionTest <- c()
+          recallTest <- c()
+          for (fold in folds) {
+            train <- datastream_dataframe(data = dataTrain[-fold, ])
+            test <- dataTrain[fold, ]
+            model <- trainMOA(model = learner, formula = as.formula("class ~ ."),
+                              data = train, chunksize = dataLength)
+            
+            cmFold <- confusionMatrix(model, test)
+            if (length(rownames(cmFold)) != length(colnames(cmFold))) {
+              cmFold <- fixCM(cmFold)
+            }
+            cat("\n\tCM FOLD:\n")
+            print(cmFold)
+            accFold <- c(accFold, getAcc(cmFold))
+            fmeasureFold <- c(fmeasureFold, fmeasure(cmFold))
+            precisionFold <- c(precisionFold, precision(cmFold))
+            recallFold <- c(recallFold, recall(cmFold))
+            cmTest <- confusionMatrix(model, dataTest)
+            if (length(rownames(cmTest)) != length(colnames(cmTest))) {
+              cmTest <- fixCM(cmTest)
+            }
+            cat("\n\tCM TEST:\n")
+            print(cmTest)
+            accTest <- c(accTest, getAcc(cmTest))
+            fmeasureTest <- c(fmeasureTest, fmeasure(cmTest))
+            precisionTest <- c(precisionTest, precision(cmTest))
+            recallTest <- c(recallTest, recall(cmTest))
           }
-          cat("\n\tCM FOLD:\n")
-          print(cmFold)
-          accFold <- c(accFold, getAcc(cmFold))
-          fmeasureFold <- c(fmeasureFold, fmeasure(cmFold))
-          precisionFold <- c(precisionFold, precision(cmFold))
-          recallFold <- c(recallFold, recall(cmFold))
-          cmTest <- confusionMatrix(model, dataTest)
-          if (length(rownames(cmTest)) != length(colnames(cmTest))) {
-            cmTest <- fixCM(cmTest)
-          }
-          cat("\n\tCM TEST:\n")
-          print(cmTest)
-          accTest <- c(accTest, getAcc(cmTest))
-          fmeasureTest <- c(fmeasureTest, fmeasure(cmTest))
-          precisionTest <- c(precisionTest, precision(cmTest))
-          recallTest <- c(recallTest, recall(cmTest))
+          end <- Sys.time()
+          fileName <- paste(dataName, toupper(learner$type), dataLength, ".txt",
+                            sep = "")
+          writeArchive(paste("FOLD", fileName, sep = ""), "../results/", dataName,
+                       accFold, fmeasureFold, precisionFold, recallFold, begin,
+                       end, epoch)
+          writeArchive(paste("TEST", fileName, sep = ""), "../results/", dataName,
+                       accTest, fmeasureTest, precisionTest, recallTest,
+                       begin, end, epoch)
         }
-        end <- Sys.time()
-        fileName <- paste(dataName, toupper(learner$type), dataLength, ".txt",
-                          sep = "")
-        writeArchive(paste("FOLD", fileName, sep = ""), "../results/", dataName,
-                     accFold, fmeasureFold, precisionFold, recallFold, begin,
-                     end, epoch)
-        writeArchive(paste("TEST", fileName, sep = ""), "../results/", dataName,
-                     accTest, fmeasureTest, precisionTest, recallTest,
-                     begin, end, epoch)
       }
     }
   }
