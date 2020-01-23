@@ -31,7 +31,7 @@ rm(scripts, scri)
 meansFlexConC1S <- c()
 meansFlexConC1V <- c()
 databases <- list.files(path = "../datasets")
-dataLength <- 5000
+dataLength <- 500
 defines()
 for (dataset in databases) {
   dataName <- strsplit(dataset, ".", T)[[1]][1]
@@ -40,6 +40,7 @@ for (dataset in databases) {
     set.seed(seed)
     originalDB <- readData(dataset)
     epoch <- 0
+    classifiers <- baseClassifiers
     while ((nrow(originalDB$data)) > (originalDB$state)) {
       epoch <- epoch + 1
       allDataL <- getBatch(originalDB, dataLength)
@@ -50,7 +51,8 @@ for (dataset in databases) {
       dataTest <- allDataL[dataL$ts, ]
       rownames(dataTrain) <- as.character(1:nrow(dataTrain))
       folds <- stratifiedKFold(dataTrain, dataTrain$class)
-      for (learner in baseClassifiers) {
+      for (l in 1:length(classifiers)) {
+        learner <- classifiers[[l]]
         trainedModels <- c()
         accFold <- c()
         fmeasureFold <- c()
@@ -65,7 +67,7 @@ for (dataset in databases) {
           test <- dataTrain[fold, ]
           model <- trainMOA(model = learner, formula = as.formula("class ~ ."),
                             data = train, chunksize = dataLength)
-          
+          trainedModels[[length(trainedModels) + 1]] <- model$model
           cmFold <- confusionMatrix(model, test)
           if (length(rownames(cmFold)) != length(colnames(cmFold))) {
             cmFold <- fixCM(cmFold)
@@ -96,6 +98,7 @@ for (dataset in databases) {
         writeArchive(paste("TEST", fileName, sep = ""), "../results/", dataName,
                      accTest, fmeasureTest, precisionTest, recallTest,
                      begin, end, epoch)
+        classifiers[[l]] <-  trainedModels[[which.max(fmeasureTest)]]
       }
     }
   }
