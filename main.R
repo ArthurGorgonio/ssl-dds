@@ -41,6 +41,7 @@ for (dataLength in lengthBatch) {
       set.seed(seed)
       originalDB <- readData(dataset)
       epoch <- 0
+      classifiers <- baseClassifiers
       while ((nrow(originalDB$data)) > (originalDB$state)) {
         epoch <- epoch + 1
         allDataL <- getBatch(originalDB, dataLength)
@@ -51,7 +52,8 @@ for (dataLength in lengthBatch) {
         dataTest <- allDataL[dataL$ts, ]
         rownames(dataTrain) <- as.character(1:nrow(dataTrain))
         folds <- stratifiedKFold(dataTrain, dataTrain$class)
-        for (learner in baseClassifiers) {
+        for (l in 1:length(classifiers)) {
+          learner <- classifiers[[l]]
           trainedModels <- c()
           accFold <- c()
           fmeasureFold <- c()
@@ -66,7 +68,7 @@ for (dataLength in lengthBatch) {
             test <- dataTrain[fold, ]
             model <- trainMOA(model = learner, formula = as.formula("class ~ ."),
                               data = train, chunksize = dataLength)
-            
+            trainedModels[[length(trainedModels) + 1]] <- model$model
             cmFold <- confusionMatrix(model, test)
             if (length(rownames(cmFold)) != length(colnames(cmFold))) {
               cmFold <- fixCM(cmFold)
@@ -97,6 +99,7 @@ for (dataLength in lengthBatch) {
           writeArchive(paste("TEST", fileName, sep = ""), "../results/", dataName,
                        accTest, fmeasureTest, precisionTest, recallTest,
                        begin, end, epoch)
+          classifiers[[l]] <-  trainedModels[[which.max(fmeasureTest)]]
         }
       }
     }

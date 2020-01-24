@@ -80,7 +80,18 @@ predictClass <- function(model, testDB) {
   dbClassOff <- match("class", colunsNames)
   testData <- testDB[, -dbClassOff]
   prediction <- predict(model, testData, "response")
-  return(prediction)
+  if (typeof(prediction) == "character") {
+    return(prediction)
+  }
+  newP <- c()
+  for (p in prediction) {
+    if (!(identical(p, character(0)))) {
+      newP <- c(newP, p)
+    } else {
+      newP <- c(newP, sample(levels(testDB$class), 1))
+    }
+  }
+  return(newP)
 }
 
 predictEnsemble <- function(ensemble, oracleDB, nClass) {
