@@ -2,7 +2,7 @@
 #'
 installNeedPacks <- function() {
   packages <- c("plyr", "DMwR", "DMwR2", "RWeka", "rminer", "e1071", "ggplot2",
-                "PMCMR", "ssc", "scmamp", "foreign")
+                "PMCMR", "ssc", "scmamp", "RMOA", "foreign")
   if (!require("BiocManager")) {
     install.packages("BiocManager")
   }

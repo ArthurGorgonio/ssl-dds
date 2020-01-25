@@ -22,7 +22,7 @@ shuffleClassify <- function(size) {
 }
 
 
-setWorkspace()
+# setWorkspace()
 scripts <- list.files()
 for (scri in scripts) {
   source(scri)
@@ -84,7 +84,7 @@ for (dataLength in lengthBatch) {
             classDist <- ddply(data[labelIds, ], ~class, summarise,
                                samplesClass = length(class))
             initialAcc <- supAcc(learner@func, data[labelIds, ])
-            model <- flexConC(learner, myFuncs[lear], classDist, initialAcc,
+            model <- flexConC(learner, myFuncs[typeClassifier[lear]], classDist, initialAcc,
 			      "1", data, labelIds, learner@func, 5)
             trainedModels[[length(trainedModels) + 1]] <- model
             cmFold <- confusionMatrix(model, test)
