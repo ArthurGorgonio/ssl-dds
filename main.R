@@ -64,7 +64,8 @@ for (dataLength in lengthBatch) {
           classifier[needUpdate] <- attKValue(dataTrain)
         }
         folds <- stratifiedKFold(dataTrain, dataTrain$class)
-        for (learner in classifier) {
+        for (lear in 1:length(classifier)) {
+	  learner <- classifier[[lear]]
           trainedModels <- c()
           accFold <- c()
           fmeasureFold <- c()
@@ -83,9 +84,8 @@ for (dataLength in lengthBatch) {
             classDist <- ddply(data[labelIds, ], ~class, summarise,
                                samplesClass = length(class))
             initialAcc <- supAcc(learner@func, data[labelIds, ])
-            model <- flexConC(learner, myFuncs[match(list(learner), classifier)],
-                              classDist, initialAcc, "1", data, labelIds,
-                              learner@func, 5)
+            model <- flexConC(learner, myFuncs[lear], classDist, initialAcc,
+			      "1", data, labelIds, learner@func, 5)
             trainedModels[[length(trainedModels) + 1]] <- model
             cmFold <- confusionMatrix(model, test)
             cat("\n\tCM FOLD:\n")
