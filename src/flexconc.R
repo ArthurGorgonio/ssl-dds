@@ -166,7 +166,7 @@ flexConC <- function(learner, predFunc, classDist, initialAcc, method, data,
     memo <- generateMemory(data, nClass)
   }
   addRotSuperv <- FALSE
-  while ((it < maxIts) && (length(sup) != nrow(data))) {
+  while ((it < maxIts) && (length(sup) <= nrow(data))) {
     newSamples <- c()
     it <- it + 1
     model <- generateModel(learner, form, data[sup, ])
