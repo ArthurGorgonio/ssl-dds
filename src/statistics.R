@@ -5,7 +5,7 @@
 #' @return The accuracy.
 #'
 getAcc <- function(matrix) {
-  acc <- ((sum(diag(matrix)) / sum(matrix)) * 100)
+  acc <- (sum(diag(matrix)) / sum(matrix))
   return(acc)
 }
 

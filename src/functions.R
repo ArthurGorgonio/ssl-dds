@@ -36,13 +36,96 @@ convertProbPreds <- function(probPreds) {
   return(probPreds)
 }
 
+
+# Function co-Training original (w/ fix threshold)
+#@param metodo - 1 = co-training original (k=10%)
+#                2 = co-training baseado no metodo de Felipe (k=limiar)
+#                3 = co-training gradativo (k=limiar que diminui 5% a cada iteracao)
+coTrainingOriginal <- function(learner, predFunc, data1, data2, metodo = 1,
+                               k_fixo = T) {
+  k <- 5
+  thrConf <- 0.95
+  maxIts <- 100
+  verbose <- T
+  N <- NROW(data1)
+  it <- 0
+  sup1 <- which(!is.na(data1[, as.character(form[[2]])])) #exemplos inicialmente rotulados
+  sup2 <- which(!is.na(data2[, as.character(form[[2]])])) #exemplos inicialmente rotulados
+  while (((it < maxIts) && ((length(sup1) / N) < 1) && ((length(sup2) / N) < 1))) {
+    new_samples1 <- c()
+    new_samples2 <- c()
+    acertou <- 0
+    it <- it + 1
+    
+    model1 <- generateModel(learner, form, data1[sup1, ])
+    model2 <- generateModel(learner, form, data2[sup2, ])
+    probPreds1 <- generateProbPreds(model1, data1[-sup2,], predFunc)
+    probPreds2 <- generateProbPreds(model2, data2[-sup1,], predFunc)
+    
+    id_data1 <- getID(data1,sup2)
+    id_data2 <- getID(data2,sup1)
+    probPreds1$id <- id_data1
+    probPreds2$id <- id_data2
+    
+    if (k_fixo) {
+      #NAO VAMOS USAR ESSE K
+      #quanidade de atributos = ao valor de K definido no inicio da funcao
+      # qtd_add <- min(k,nrow(probPreds1)) # tamanho do probpreds1=probpreds2
+      #quanidade de atributos = 10% do conjunto nao rotulado      
+      qtd_add <- as.integer(nrow(probPreds1) * 0.1)
+      if ((nrow(probPreds1) >= 1) && (qtd_add < 1)) {
+        qtd_add <- 1
+      }
+    } else {
+      #co-training adaptado para funcionar igual ao self-training de Felipe
+      qtd_add <- min(length(which(probPreds1[, 2] >= thrConf)),
+                     length(which(probPreds2[, 2] >= thrConf)))
+    }
+    #criando os vetores em ordem decrescente pela confianca
+    probPreds1_ordenado <- order(probPreds1$p, decreasing = T)
+    probPreds2_ordenado <- order(probPreds2$p, decreasing = T)
+    
+    if (qtd_add > 0) {
+      new_samples1 <- probPreds1[probPreds1_ordenado[1:qtd_add], -2]
+      new_samples2 <- probPreds2[probPreds2_ordenado[1:qtd_add], -2]
+      data1[(1:N)[new_samples2$id], as.character(form[[2]])] <- new_samples2$cl
+      data2[(1:N)[new_samples1$id], as.character(form[[2]])] <- new_samples1$cl
+      sup1 <- c(sup1, new_samples2$id)
+      sup2 <- c(sup2, new_samples1$id)
+      
+    } else {
+      new_samples1 <- c()
+      new_samples2 <- c()
+    }
+  }
+  model <- list(model1, model2)
+  return(model)
+}
+
+criar_visao <- function(dados) {
+  col <- round((ncol(dados) - 1) / 2)
+  col1 <- as.integer((ncol(dados) - 1) / 2)
+  if ((col + col1) < (ncol(dados) - 1)) {
+    col <- col + 1
+  }
+  xl <- dados[,1:ncol(dados) - 1] #a base dados sem os rotulos
+  yl <- dados[-(1:ncol(dados) - 1)] #rotulos da base 
+  view <- partition.matrix(xl, sep = length(dados), rowsep = nrow(dados),
+                           colsep = c(col,col1))
+  data1 <- data.frame(view$`1`$`1`,yl)
+  data2 <- data.frame(view$`1`$`2`,yl)
+  visoes <- list(data1,data2)
+  return(visoes)
+}
+
+
 #' @description Function to define constants in all code
 #'
 defines <- function() {
   accC1S <<- c()
   accC1V <<- c()
   accC2 <<- c()
-  baseClassifiers <<- learner("J48", list())
+  baseClassifiers <<- learner("J48", list(control = Weka_control(C = 0.05)))
   ensemble <- c()
   extention <<- ".csv"
   label <<- "class"
@@ -109,6 +192,14 @@ getRealId <- function(dataset, sup) {
   ids <- as.integer(rownames(dataset))
   return(ids[-sup])
 }
+
+getID <- function(base, sup){ #pegr o ID real no data
+  base_local <- base
+  base_local$id <- seq(1,nrow(base_local))
+  base_local <- base_local[-sup,]
+  return(base_local$id)
+}
+
 
 #' @description This function set the class atribute to NA without change the
 #'  class of selected samples
