@@ -40,12 +40,12 @@ writeArchive <- function(title, prefix, dataName, acc, f1, preci, recall, begin,
   line <- c()
   for (i in 1:10) {
     line <- paste(line,
-                  paste("fold", i, ":\t", acc[i], "% ", round(100 - acc[i], 4),
-                        "% ", f1[i], " ", preci[i], " ", recall[i], sep = ""),
+                  paste("fold", i, ":\t", acc[i], " ", round(1 - acc[i], 4),
+                        " ", f1[i], " ", preci[i], " ", recall[i], sep = ""),
                   sep = "\n")
   }
-  allMeans <- paste("AVERAG\t", round(mean(acc), 4), "% ",
-                    round(mean(round(100 - acc, 4)), 4), "% ",
+  allMeans <- paste("AVERAG\t", round(mean(acc), 4), " ",
+                    round(mean(round(1 - acc, 4)), 4), " ",
                     round(mean(f1), 4), " ", round(mean(preci), 4), " ",
                     round(mean(recall), 4), sep = "")
   line <- paste(line, separ, allMeans, separ, sep = "\n")
