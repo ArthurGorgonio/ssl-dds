@@ -4,4 +4,6 @@
 .Ruserdata
 .png
 .sh
-results
+results/
+.idea/
+*.csv
