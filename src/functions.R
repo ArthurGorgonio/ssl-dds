@@ -58,27 +58,6 @@ defines <- function() {
   label <<- "class"
   form <<- as.formula("class ~ .")
   funcType <<- c("raw", "probability", "prob", "probability")
-  # trainSet <<- c()
-  # training <<- c()
-  # # FlexCon-C1 variables
-  # globalIt <<- c()
-  # db <<- c()
-  # confValue <<- c()
-  # globalSamplasAdd <<- c()
-  # percentageLabelSamples <<- c()
-  # globalAcc <<- c()
-  # glocalCorrect <<- c()
-  # # FlexCon-C2 variables
-  # it_g_3 <<- c()
-  # bd_g_3 <<- c()
-  # thrConf_g_3 <<- c()
-  # nr_added_exs_g_3 <<- c()
-  # tx_g_3 <<- c()
-  # acc_g_3 <<- c()
-  # acertou_g_3 <<- c()
-  # grad_g <<- c()
-  # bd <<- c()
-  # tx <<- c()
 }
 
 #' @description Create a classifier from a data set.

@@ -1,14 +1,14 @@
-#' @description This function check the actual directory has a subdir called src
-#'  if exists it's a new working directory
+#' @description This function check the actual directory has a sub directory
+#'  called src if exists it's a new working directory
 setWorkspace <- function() {
   files <- c("classifiers.R", "crossValidation.R", "database.R", "flexconc.R",
              "functions.R", "statistics.R", "utils.R", "write.R")
   if ("src" %in% list.dirs(full.names = F)) {
     setwd("src")
-  } else if (!all(files %in% list.files())) {
-    stop("Some file is missing!\n")
+  } else if (all(files %in% list.files())) {
+    print("All files exists!")
   } else {
-    stop("Please move to the right directory!\n")
+    stop("The follow file(s) are missing!\n", files[!files %in% list.files()])
   }
 }
 
@@ -22,7 +22,7 @@ shuffleClassify <- function(size) {
 }
 
 
-# setWorkspace()
+setWorkspace()
 scripts <- list.files()
 for (scri in scripts) {
   source(scri)
@@ -30,11 +30,11 @@ for (scri in scripts) {
 rm(scripts, scri)
 meansFlexConC1S <- c()
 meansFlexConC1V <- c()
-databases <- list.files(path = "../datasets")
-ratio <- 0.05
-lengthBatch <- c(500, 5000)
+databases <- list.files(path = "../datasets")[6]
+ratio <- 0.1
+lengthBatch <- 50
+defines()
 for (dataLength in lengthBatch) {
-  defines()
   for (dataset in databases) {
     dataName <- strsplit(dataset, ".", T)[[1]][1]
     cat(dataName)
@@ -65,7 +65,7 @@ for (dataLength in lengthBatch) {
         }
         folds <- stratifiedKFold(dataTrain, dataTrain$class)
         for (lear in 1:length(classifier)) {
-	  learner <- classifier[[lear]]
+      	  learner <- classifier[[lear]]
           trainedModels <- c()
           accFold <- c()
           fmeasureFold <- c()
@@ -84,8 +84,8 @@ for (dataLength in lengthBatch) {
             classDist <- ddply(data[labelIds, ], ~class, summarise,
                                samplesClass = length(class))
             initialAcc <- supAcc(learner@func, data[labelIds, ])
-            model <- flexConC(learner, myFuncs[typeClassifier[lear]], classDist, initialAcc,
-			      "1", data, labelIds, learner@func, 5)
+            model <- flexConC(learner, myFuncs[typeClassifier[lear]], classDist,
+                              initialAcc, "1", data, labelIds, learner@func, 5)
             trainedModels[[length(trainedModels) + 1]] <- model
             cmFold <- confusionMatrix(model, test)
             cat("\n\tCM FOLD:\n")
