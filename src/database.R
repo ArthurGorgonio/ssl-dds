@@ -6,8 +6,8 @@
 #' @return a batch with n samples and all features and class of the data set.
 #'
 getBatch <- function(database, n) {
-  len <- abs(nrow(database$data) - (database$state + n))
-  return(database$get_points(min(n, len)))
+  # len <- abs(nrow(database$data) - (database$state + n))
+  return(database$get_points(n))
 }
 
 #' @description Read a data set from a arff file
