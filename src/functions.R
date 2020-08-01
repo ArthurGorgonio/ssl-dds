@@ -49,13 +49,19 @@ convertProbPreds <- function(probPreds) {
 defines <- function() {
   baseClassifiers <<- c(
     list(HoeffdingTree(control = MOAoptions(model = "HoeffdingTree"))),
+    list(NaiveBayes(control = MOAoptions(model = "NaiveBayes"))),
     list(ActiveClassifier(control = MOAoptions(model = "ActiveClassifier"))),
+    list(WeightedMajorityAlgorithm(
+                 control = MOAoptions(model = "WeightedMajorityAlgorithm"))),
     list(AccuracyWeightedEnsemble(control = 
                                MOAoptions(model = "AccuracyWeightedEnsemble",
                                           memberCount = 10, storedCount = 100,
                                           chunkSize = dataLength))),
     list(OzaBoostAdwin(control = MOAoptions(model = "OzaBoostAdwin"))),
-    list(ADACC(control = MOAoptions(model = "ADACC")))
+    list(ADACC(control = MOAoptions(model = "ADACC"))),
+    list(DACC(control = MOAoptions(model = "DACC"))),
+    list(OzaBagAdwin(control = MOAoptions(model = "OzaBagAdwin"))),
+    list(LimAttClassifier(control = MOAoptions(model = "LimAttClassifier")))
     )
   ensemble <- c()
   extention <<- ".csv"
@@ -67,16 +73,18 @@ defines <- function() {
 fixCM <- function(cm) {
   if (nrow(cm) < ncol(cm)) {
     truePos <- match(rownames(cm), colnames(cm))
-    newCM <- matrix(rep(0,2*ncol(cm)), nrow = ncol(cm), ncol = ncol(cm))
+    newCM <- matrix(rep(0, 2 * ncol(cm)), nrow = ncol(cm), ncol = ncol(cm))
     colnames(newCM) <- colnames(cm)
     rownames(newCM) <- colnames(cm)
     newCM[truePos,] <- cm
-  } else {
+  } else if (nrow(cm) > ncol(cm)) {
     truePos <- match(colnames(cm), rownames(cm))
-    newCM <- matrix(rep(0,2*nrow(cm)), nrow = nrow(cm), ncol = nrow(cm))
+    newCM <- matrix(rep(0, 2 * nrow(cm)), nrow = nrow(cm), ncol = nrow(cm))
     colnames(newCM) <- rownames(cm)
     rownames(newCM) <- rownames(cm)
     newCM[, truePos] <- cm
+  } else {
+    print("Nothing is fixed!")
   }
   return(newCM)
 }
