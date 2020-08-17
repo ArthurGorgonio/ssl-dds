@@ -53,16 +53,16 @@ defines <- function() {
     list(ActiveClassifier(control = MOAoptions(model = "ActiveClassifier"))),
     list(WeightedMajorityAlgorithm(
                  control = MOAoptions(model = "WeightedMajorityAlgorithm"))),
-    list(AccuracyWeightedEnsemble(control = 
+    list(AccuracyWeightedEnsemble(control =
                                MOAoptions(model = "AccuracyWeightedEnsemble",
                                           memberCount = 10, storedCount = 100,
                                           chunkSize = dataLength))),
     list(OzaBoostAdwin(control = MOAoptions(model = "OzaBoostAdwin"))),
     list(ADACC(control = MOAoptions(model = "ADACC"))),
     list(DACC(control = MOAoptions(model = "DACC"))),
-    list(OzaBagAdwin(control = MOAoptions(model = "OzaBagAdwin"))),
-    list(LimAttClassifier(control = MOAoptions(model = "LimAttClassifier")))
+    list(OzaBagAdwin(control = MOAoptions(model = "OzaBagAdwin")))
     )
+    #list(LimAttClassifier(control = MOAoptions(model = "LimAttClassifier")))
   ensemble <- c()
   extention <<- ".csv"
   label <<- "class"

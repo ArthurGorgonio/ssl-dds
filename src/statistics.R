@@ -5,7 +5,7 @@
 #' @return The accuracy.
 #'
 getAcc <- function(cm) {
-  acc <- ((sum(diag(cm)) / sum(cm)) * 100)
+  acc <- (sum(diag(cm)) / sum(cm))
   return(acc)
 }
 
