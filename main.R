@@ -1,26 +1,27 @@
-#' @description This function check the actual directory has a subdir called src
-#'  if exists it's a new working directory
+#' @description This function check the actual directory has a sub directory
+#'   called src if exists it's a new working directory
 setWorkspace <- function() {
   files <- c("classifiers.R", "crossValidation.R", "database.R", "flexconc.R",
              "functions.R", "statistics.R", "utils.R", "write.R")
   if ("src" %in% list.dirs(full.names = F)) {
     setwd("src")
-  } else if (!all(files %in% list.files())) {
-    stop("Some file is missing!\n")
+  } else if (all(files %in% list.files())) {
+    print("All files exists!")
   } else {
-    stop("Please move to the right directory!\n")
+    stop("The follow file(s) are missing!\n", files[!files %in% list.files()])
   }
 }
 
 seeds <- c(1, 3, 7)
 #' , 9, 12, 18, 29, 32, 36, 44, 49, 73, 80, 92, 100, 154, 201, 273, 310, 374,
 #' 435, 559, 623, 828, 945, 3341, 3431, 3581, 4134, 8999
+options(java.parameters = "-Xmx4g")
+#'
 
 shuffleClassify <- function(size) {
   typeClassify <- 1:length(baseClassifiers)
   return(sample(typeClassify, size, T))
 }
-
 
 setWorkspace()
 scripts <- list.files()
@@ -31,76 +32,51 @@ rm(scripts, scri)
 meansFlexConC1S <- c()
 meansFlexConC1V <- c()
 databases <- list.files(path = "../datasets")
-lengthBatch <- c(500, 5000)
+lengthBatch <- c(500,5000)
 for (dataLength in lengthBatch) {
   defines()
   for (dataset in databases) {
     dataName <- strsplit(dataset, ".", T)[[1]][1]
     cat(dataName)
+    epoch <- 0
     for (seed in seeds) {
+      epoch <- epoch + 1
+      cat("\n\n\nRODADA: ", epoch, "\n\n\n\n")
       set.seed(seed)
-      originalDB <- readData(dataset)
-      epoch <- 0
+      originalDB <- getDatabase(dataset)
       classifiers <- baseClassifiers
-      while ((nrow(originalDB$data)) > (originalDB$state)) {
-        epoch <- epoch + 1
-        allDataL <- getBatch(originalDB, dataLength)
-        allDataL$class <- droplevels(allDataL$class)
+      dataL <- holdout(originalDB$class, .75, mode = "random", seed = seed)
+      dataTrain <- originalDB[dataL$tr, ]
+      folds <- stratifiedKFold(dataTrain, dataTrain$class)
+      dataTest <- originalDB[dataL$ts, ]
+      cl <- match(label, colnames(dataTest))
+      for (learner in classifiers) {
+        cat("\n\nClassifier:\t", learner$type, "\n\n\n\n")
         begin <- Sys.time()
-        dataL <- holdout(allDataL$class, .75)
-        dataTrain <- allDataL[dataL$tr, ]
-        dataTest <- allDataL[dataL$ts, ]
-        rownames(dataTrain) <- as.character(1:nrow(dataTrain))
-        folds <- stratifiedKFold(dataTrain, dataTrain$class)
-        for (l in 1:length(classifiers)) {
-          learner <- classifiers[[l]]
-          trainedModels <- c()
-          accFold <- c()
-          fmeasureFold <- c()
-          precisionFold <- c()
-          recallFold <- c()
-          accTest <- c()
-          fmeasureTest <- c()
-          precisionTest <- c()
-          recallTest <- c()
-          for (fold in folds) {
-            train <- datastream_dataframe(data = dataTrain[-fold, ])
-            test <- dataTrain[fold, ]
-            model <- trainMOA(model = learner, formula = as.formula("class ~ ."),
-                              data = train, chunksize = dataLength)
-            trainedModels[[length(trainedModels) + 1]] <- model$model
-            cmFold <- confusionMatrix(model, test)
-            if (length(rownames(cmFold)) != length(colnames(cmFold))) {
-              cmFold <- fixCM(cmFold)
-            }
-            cat("\n\tCM FOLD:\n")
-            print(cmFold)
-            accFold <- c(accFold, getAcc(cmFold))
-            fmeasureFold <- c(fmeasureFold, fmeasure(cmFold))
-            precisionFold <- c(precisionFold, precision(cmFold))
-            recallFold <- c(recallFold, recall(cmFold))
-            cmTest <- confusionMatrix(model, dataTest)
-            if (length(rownames(cmTest)) != length(colnames(cmTest))) {
-              cmTest <- fixCM(cmTest)
-            }
-            cat("\n\tCM TEST:\n")
-            print(cmTest)
-            accTest <- c(accTest, getAcc(cmTest))
-            fmeasureTest <- c(fmeasureTest, fmeasure(cmTest))
-            precisionTest <- c(precisionTest, precision(cmTest))
-            recallTest <- c(recallTest, recall(cmTest))
+        accTest <- c()
+        fmeasureTest <- c()
+        precisionTest <- c()
+        recallTest <- c()
+        for (fold in folds) {
+          train <- datastream_dataframe(data = dataTrain[-fold, ])
+          model <- trainMOA(model = learner, formula = form, data = train,
+                            chunksize = dataLength)
+          cmTest <- confusionMatrix(model, dataTest)
+          if (length(rownames(cmTest)) != length(colnames(cmTest))) {
+            cmTest <- fixCM(cmTest)
           }
-          end <- Sys.time()
-          fileName <- paste(dataName, toupper(learner$type), dataLength, ".txt",
-                            sep = "")
-          writeArchive(paste("FOLD", fileName, sep = ""), "../results/", dataName,
-                       accFold, fmeasureFold, precisionFold, recallFold, begin,
-                       end, epoch)
-          writeArchive(paste("TEST", fileName, sep = ""), "../results/", dataName,
-                       accTest, fmeasureTest, precisionTest, recallTest,
-                       begin, end, epoch)
-          classifiers[[l]] <-  trainedModels[[which.max(fmeasureTest)]]
+          cat("\n\tCM TEST:\n")
+          print(cmTest)
+          accTest <- c(accTest, getAcc(cmTest))
+          fmeasureTest <- c(fmeasureTest, fmeasure(cmTest))
+          precisionTest <- c(precisionTest, precision(cmTest))
+          recallTest <- c(recallTest, recall(cmTest))
         }
+        end <- Sys.time()
+        fileName <- paste(toupper(learner$type), dataLength, ".txt", sep = "")
+        writeArchive(paste("test", fileName, sep = ""), "../results/", dataName,
+                     model$model$type, accTest, fmeasureTest, precisionTest,
+                     recallTest, begin, end, epoch)
       }
     }
   }
