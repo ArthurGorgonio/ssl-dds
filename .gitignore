@@ -4,4 +4,5 @@
 .Ruserdata
 .png
 .sh
-results
+results/
+not-used/
