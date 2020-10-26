@@ -46,18 +46,43 @@ convertProbPreds <- function(probPreds) {
 
 #' @description Function to define constants in all code
 #'
-defines <- function() {
+defines <- function(k) {
   accC1S <<- c()
   accC1V <<- c()
   accC2 <<- c()
-  baseClassifiers <<- c(learner("naiveBayes", list()), learner("JRip", list()),
-            learner("rpartXse", list(se = 0.5)),
-            learner("IBk", list(control = Weka_control(K = 3, X = TRUE))))
+  baseClassifiers <<- c(learner("naiveBayes", list()),
+                  learner("naiveBayes", list(laplace = 1)),
+                  learner("JRip", list(control = Weka_control(F = 3))),
+                  learner("JRip", list(control = Weka_control(O = 2))),
+                  learner("JRip", list(control = Weka_control(O = 3))),
+                  learner("JRip", list(control = Weka_control(O = 4))),
+                  learner("JRip", list(control = Weka_control(O = 2, F = 3))),
+                  learner("JRip", list(control = Weka_control(O = 3, F = 3))),
+                  learner("JRip", list(control = Weka_control(O = 4, F = 3))),
+                  learner("J48", list(control = Weka_control(C = .05))),
+                  learner("J48", list(control = Weka_control(C = .10))),
+                  learner("J48", list(control = Weka_control(C = .15))),
+                  learner("J48", list(control = Weka_control(C = .20))),
+                  learner("J48", list(control = Weka_control(C = .25))),
+                  learner("J48", list(control = Weka_control(C = .05, M = 2))),
+                  learner("J48", list(control = Weka_control(C = .10, M = 2))),
+                  learner("J48", list(control = Weka_control(C = .15, M = 2))),
+                  learner("J48", list(control = Weka_control(C = .20, M = 2))),
+                  learner("J48", list(control = Weka_control(C = .25, M = 2))),
+                  learner("IBk", list(control = Weka_control(K = k, X = TRUE))),
+                  learner("IBk", list(control = Weka_control(K = k, X = TRUE,
+                                                             I = TRUE))),
+                  learner("IBk", list(control = Weka_control(K = k, X = TRUE,
+                                                             F = TRUE))),
+                  learner("IBk", list(control = Weka_control(K = k, X = TRUE,
+                                                             F = TRUE, I = TRUE)
+                                      ))
+              )
   ensemble <- c()
   extention <<- ".csv"
   label <<- "class"
   form <<- as.formula("class ~ .")
-  funcType <<- c("raw", "probability", "prob", "probability")
+  funcType <<- c("raw", "raw", rep("probability", 21))
 }
 
 #' @description Create a classifier from a data set.

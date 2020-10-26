@@ -12,18 +12,6 @@ addingEnsemble <- function(ensemble, trainedModels, accuracy) {
   return(ensemble)
 }
 
-#' @description Funtion to set a new k value for each dataset, the value is
-#'  the sqrt(number of samples).
-#'
-#' @param dataset The current databese.
-#'
-#' @return A new classifier IBk using the right k.
-#'
-attKValue <- function(dataset) {
-  param <- list(control = Weka_control(K = floor(sqrt(nrow(dataset))), X = T))
-  return(c(learner("IBk", param)))
-}
-
 #' @description Drop all trained models of the ensemble.
 #'
 #' @param ensemble The ensemble.
