@@ -31,8 +31,8 @@ for (scri in scripts) {
 rm(scripts, scri)
 meansFlexConC1S <- c()
 meansFlexConC1V <- c()
-databases <- list.files(path = "../datasets")[-c(1:8)]
-lengthBatch <- 500
+databases <- list.files(path = "../datasets")
+lengthBatch <- 5000
 for (dataLength in lengthBatch) {
   defines()
   for (dataset in databases) {
