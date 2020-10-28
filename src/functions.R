@@ -7,15 +7,7 @@
 #' @return Accuracy of the model trained with a sample set `trainSet`.
 #'
 calcLocalAcc <- function(c, iniLabDB, trainSet) {
-  switch(as.character(c),
-         'naiveBayes' = std <- naiveBayes(form, trainSet),
-         'JRip' = std <- JRip(form, trainSet),
-         'rpartXse' = std <- rpartXse(form, trainSet, se = 0.5),
-         'IBk' = {
-           k <- floor(sqrt(nrow(iniLabDB)))
-           std <- IBk(form, trainSet, control = Weka_control(K = k, X = TRUE))
-         }
-  )
+  std <- runLearner(c, form, trainSet)
   confMat <- confusionMatrix(std, iniLabDB)
   return(getAcc(confMat))
 }
@@ -75,7 +67,7 @@ defines <- function(k) {
                   learner("IBk", list(control = Weka_control(K = k, X = TRUE,
                                                              F = TRUE))),
                   learner("IBk", list(control = Weka_control(K = k, X = TRUE,
-                                                             F = TRUE, I = TRUE)
+                                                             I = TRUE, F = FALSE)
                                       ))
               )
   ensemble <- c()
@@ -152,9 +144,9 @@ newBase <- function(labeledDB, trainId){
 #'
 newConfidence <- function(localAcc, initialAcc, confValue, changeRate) {
   crRatio <- changeRate / 100
-  if ((localAcc > (initialAcc + 1)) && ((confValue - crRatio) > 0.0)) {
+  if ((localAcc > (initialAcc + 0.01)) && ((confValue - crRatio) > 0.0)) {
     confValue <- confValue - crRatio
-  } else if ((localAcc < (initialAcc - 1)) && ((confValue + crRatio) <= 1)) {
+  } else if ((localAcc < (initialAcc - 0.01)) && ((confValue + crRatio) <= 1)) {
     confValue <- confValue + crRatio
   }
   return(confValue)
@@ -195,15 +187,7 @@ supAcc <- function(cl, iniLabDB) {
 #' @return Return a supervised classifier.
 #'
 supModel <- function(cl, iniLabDB) {
-  switch(as.character(cl),
-         'naiveBayes' = std <- naiveBayes(form, iniLabDB),
-         'JRip' = std <- JRip(form, iniLabDB),
-         'rpartXse' = std <- rpartXse(form, iniLabDB, se = 0.5),
-         'IBk' = {
-           k <- floor(sqrt(nrow(iniLabDB)))
-           std <- IBk(form, iniLabDB, control = Weka_control(K = k))
-         }
-  )
+  std <- runLearner(cl, form, iniLabDB)
   return(std)
 }
 

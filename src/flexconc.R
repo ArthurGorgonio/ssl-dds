@@ -18,16 +18,16 @@ basicCheck <- function(data1It, dataXIt, confValue, memo, comp) {
   for (index in 1:length(lvls)) {
     if (letCheck(data1It, dataXIt, confValue, lvls[index], index, comp)) {
       pos <- pos + 1
-      xId[pos] <- as.numeric(levels(dataXIt$id))[dataXIt$id[index]]
+      xId[pos] <- as.numeric(dataXIt$id[index])
       if ((comp == "1") || (comp == "2")) {
-        yCl[pos] <- as.factor(dataXIt$cl[index])
+        yCl[pos] <- as.character(dataXIt$cl[index])
       } else {
-        yCl[pos] <- as.factor(searchClass(xId[pos], memo))
+        yCl[pos] <- as.character(searchClass(xId[pos], memo))
       }
       zConfPred[pos] <- dataXIt[index, 2]
     }
   }
-  samplesData <- data.frame(cl = yCl, prob = zConfPred, id = xId)
+  samplesData <- data.frame(cl = as.factor(yCl), prob = zConfPred, id = xId)
   return(samplesData)
 }
 
@@ -195,7 +195,7 @@ flexConC <- function(learner, predFunc, classDist, initialAcc, method, data,
       sup <- c(sup, trainSetIds)
       if (classify) {
         oldTrainSetIds <- c()
-        localAcc <- calcLocalAcc(classiName, data[defaultSup, ], data[sup, ])
+        localAcc <- calcLocalAcc(learner, data[defaultSup, ], data[sup, ])
         confValue <- newConfidence(localAcc, initialAcc, confValue, cr)
       } else {
         oldTrainSetIds <- c(oldTrainSetIds, trainSetIds)
