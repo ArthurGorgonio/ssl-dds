@@ -49,7 +49,6 @@ for (ratio in ratios) {
         dataTest <- originalDB[trainTest$ts, ]
         rm(originalDB, trainTest)
         cl <- match(label, colnames(dataTest))
-        rownames(dataTrain) <- as.character(1:nrow(dataTrain))
         begin <- Sys.time()
         accTest <- c()
         fmeasureTest <- c()
@@ -78,7 +77,6 @@ for (ratio in ratios) {
               length(levels(data$class[batchLabeled])))
               cmLabeled <- table(ensemblePred, data$class[batchLabeled])
               ensembleAcc <- getAcc(cmLabeled)
-              ensembleAcc <- 0
               if (ensembleAcc < 0.8) {
                 typeClassifier <- shuffleClassify(1)
                 learner <- baseClassifiers[[typeClassifier]]
