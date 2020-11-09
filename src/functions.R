@@ -42,9 +42,7 @@ defines <- function(k) {
   accC1S <<- c()
   accC1V <<- c()
   accC2 <<- c()
-  baseClassifiers <<- c(learner("naiveBayes", list()),
-                  learner("naiveBayes", list(laplace = 1)),
-                  learner("JRip", list(control = Weka_control(F = 3))),
+  baseClassifiers <<- c(learner("JRip", list(control = Weka_control(F = 3))),
                   learner("JRip", list(control = Weka_control(O = 2))),
                   learner("JRip", list(control = Weka_control(O = 3))),
                   learner("JRip", list(control = Weka_control(O = 4))),
@@ -74,7 +72,7 @@ defines <- function(k) {
   extention <<- ".csv"
   label <<- "class"
   form <<- as.formula("class ~ .")
-  funcType <<- c("raw", "raw", rep("probability", 21))
+  funcType <<- rep("probability", 21)
 }
 
 #' @description Create a classifier from a data set.
