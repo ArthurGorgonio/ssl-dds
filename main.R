@@ -30,19 +30,10 @@ for (scri in scripts) {
 }
 rm(scripts, scri)
 databases <- list.files(path = "../datasets")
-if (length(args) == 0) {
-  iniIndex <- 1
-  finIndex <- length(databases)
-} else if (length(args) == 1) {
-  iniIndex <- args[1]
-  finIndex <- length(databases)
-} else {
-  iniIndex <- args[1]
-  finIndex <- args[2]
-}
-databases <- databases[iniIndex:finIndex]
-ratios <- c(0.1)
-lengthBatch <- c(5000)
+myParam <- atribArgs(args, databases)
+ratios <- myParam$ratios
+lengthBatch <- myParam$lengthBatch
+databases <- databases[myParam$iniIndex:myParam$finIndex]
 for (ratio in ratios) {
   for (dataLength in lengthBatch) {
     kValue <- floor(sqrt(dataLength))

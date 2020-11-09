@@ -1,3 +1,32 @@
+atribArgs <- function(arguments, databases) {
+  params <- list()
+  params$ratios <- c(0.05, 0.1)
+  params$lengthBatch <- c(500, 5000)
+  params$iniIndex <- 1
+  params$finIndex <- length(databases)
+  arg <- 1
+  while (arg < length(arguments)) {
+    param <- as.numeric(arguments[arg + 1])
+    switch (arguments[arg],
+            '-s' = {
+              params$iniIndex <- param
+            },
+            '-e' = {
+              params$finIndex <- param
+            },
+            '-l' = {
+              params$lengthBatch <- param
+            },
+            '-r' = {
+              params$ratios <- param
+            }
+    )
+    arg <- arg + 2
+  }
+  return(params)
+}
+
+
 #' @description Install packages if it was not installed and load them.
 #'
 installNeedPacks <- function() {
