@@ -1,3 +1,5 @@
+args <- commandArgs(TRUE)
+
 #' @description This function check the actual directory has a sub directory
 #'  called src if exists it's a new working directory
 setWorkspace <- function() {
@@ -28,8 +30,19 @@ for (scri in scripts) {
 }
 rm(scripts, scri)
 databases <- list.files(path = "../datasets")
-ratios <- c(0.05, 0.1)
-lengthBatch <- c(500, 5000)
+if (length(args) == 0) {
+  iniIndex <- 1
+  finIndex <- length(databases)
+} else if (length(args) == 1) {
+  iniIndex <- args[1]
+  finIndex <- length(databases)
+} else {
+  iniIndex <- args[1]
+  finIndex <- args[2]
+}
+databases <- databases[iniIndex:finIndex]
+ratios <- c(0.1)
+lengthBatch <- c(5000)
 for (ratio in ratios) {
   for (dataLength in lengthBatch) {
     kValue <- floor(sqrt(dataLength))
@@ -66,10 +79,11 @@ for (ratio in ratios) {
             batch$class <- droplevels(batch$class)
             cat("Foram processadas: ", train$processed, "/", totalInstances, "\n")
             rownames(batch) <- as.character(1:nrow(batch))
-            batchIds <- holdout(batch$class, ratio)
+            batchIds <- holdout(batch$class, ratio, mode = "random", seed = seed)
             batchLabeled <- batchIds$tr
             rm(batchIds)
             data <- newBase(batch, batchLabeled)
+            data$class <- droplevels(data$class)
             classDist <- ddply(data[batchLabeled, ], ~class, summarise,
                                samplesClass = length(class))
             if (it > 1) {

@@ -43,16 +43,17 @@ writeArchive <- function(title, prefix, dataName, modelName, acc, f1, preci,
   line <- c()
   for (i in 1:10) {
     line <- paste(line,
-                  paste("fold", i, ":\t", acc[i], " ", round(1 - acc[i], 4),
-                        f1[i], " ", preci[i], " ", recall[i], sep = ""),
+                  paste("fold", i, ":\t", round(acc[i], 4), " ",
+                        round(1 - acc[i], 4), " ", round(f1[i], 4), " ",
+                        round(preci[i], 4), " ", round(recall[i], 4), sep = ""),
                   sep = "\n")
   }
   allMeans <- paste("AVERAG\t", round(mean(acc), 4), " ",
-                    round(mean(round(1 - acc, 4)), 4),
+                    round(mean(round(1 - acc, 4)), 4), " ",
                     round(mean(f1), 4), " ", round(mean(preci), 4), " ",
                     round(mean(recall), 4), sep = "")
   line <- paste(line, separ, allMeans, separ, sep = "\n")
-  time <- paste("BEGIN:\t", format(begin, pattern), "\nEND:\t", 
+  time <- paste("BEGIN:\t", format(begin, pattern), "\nEND:\t",
                 format(end, pattern), "\n\nTIME ELAPSED: ",
                 round(end - begin, 4), " seconds\n", separ, sep = "")
   content <- paste(headers, line, time, sep = "\n")

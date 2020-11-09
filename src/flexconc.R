@@ -124,7 +124,7 @@ diffConfCheck <- function(data1It, dataXIt, confValue, index1It, index) {
 #' @return A matrix (number of samples x number of distinct classes).
 #'
 generateMemory <- function(rawData, nClass) {
-  memo <- matrix(rep(0, nrow(rawData)), nrow(rawData), nClass, FALSE,
+  memo <- matrix(rep(0, nrow(rawData) * nClass), nrow(rawData), nClass, FALSE,
                  list(rownames(rawData), sort(levels(rawData$class))))
   rm(rawData)
   return(memo)
@@ -192,13 +192,14 @@ flexConC <- function(learner, predFunc, classDist, initialAcc, method, data,
       data[trainSetIds, label] <- newSamples$cl
       classify <- validClassification(data, trainSetIds, oldTrainSetIds, nClass,
                                       minClass)
-      sup <- c(sup, trainSetIds)
+      sup <- union(sup, trainSetIds)
       if (classify) {
         oldTrainSetIds <- c()
-        localAcc <- calcLocalAcc(learner, data[defaultSup, ], data[sup, ])
+        localAcc <- calcLocalAcc(learner, data[defaultSup, ],
+                                 data[setdiff(sup, defaultSup), ])
         confValue <- newConfidence(localAcc, initialAcc, confValue, cr)
       } else {
-        oldTrainSetIds <- c(oldTrainSetIds, trainSetIds)
+        oldTrainSetIds <- union(oldTrainSetIds, trainSetIds)
       }
     } else {
       confValue <- max(probPreds[, 2])
