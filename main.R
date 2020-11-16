@@ -1,4 +1,5 @@
 args <- commandArgs(TRUE)
+# args <- c("-s", "9", "-e", "9", "-l", "5000", "-r", "0.1")
 
 #' @description This function check the actual directory has a sub directory
 #'  called src if exists it's a new working directory
@@ -14,7 +15,6 @@ setWorkspace <- function() {
   }
 }
 
-seeds <- c(1, 3, 7)
 options(java.parameters = "-Xmx4g")
 
 shuffleClassify <- function(size) {
@@ -32,6 +32,7 @@ rm(scripts, scri)
 databases <- list.files(path = "../datasets")
 myParam <- atribArgs(args, databases)
 ratios <- myParam$ratios
+seeds <- myParam$seeds
 lengthBatch <- myParam$lengthBatch
 databases <- databases[myParam$iniIndex:myParam$finIndex]
 for (ratio in ratios) {

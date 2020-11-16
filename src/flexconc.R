@@ -157,7 +157,11 @@ flexConC <- function(learner, predFunc, classDist, initialAcc, method, data,
                      sup, classiName, cr = 5, confValue = 0.95, maxIts = 100) {
   defaultSup <- sup
   it <- 0
-  minClass <- floor(min(classDist$samplesClass) * 0.1)
+  if (min(classDist$samplesClass) < 10) {
+    minClass <- min(classDist$samplesClass)
+  } else {
+    floor(min(classDist$samplesClass) * 0.1)
+  }
   nClass <- nrow(classDist)
   trainSetIds <- c()
   oldTrainSetIds <- c()

@@ -4,6 +4,7 @@ atribArgs <- function(arguments, databases) {
   params$lengthBatch <- c(500, 5000)
   params$iniIndex <- 1
   params$finIndex <- length(databases)
+  params$seeds <- c(1, 3, 7)
   arg <- 1
   while (arg < length(arguments)) {
     param <- as.numeric(arguments[arg + 1])
@@ -19,6 +20,13 @@ atribArgs <- function(arguments, databases) {
             },
             '-r' = {
               params$ratios <- param
+            },
+            '-d' = {
+              params$seeds <- param
+            },
+            '-h' = {
+              cat("-s to start data set [1-11]\n-e to end data set [1-11]",
+                  "-l to length batch\n-r to ratio\n-d to seed!!!")
             }
     )
     arg <- arg + 2
