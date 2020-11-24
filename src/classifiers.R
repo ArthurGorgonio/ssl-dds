@@ -69,8 +69,8 @@ predictClass <- function(model, testDB) {
   return(prediction)
 }
 
-predictEnsemble <- function(ensemble, oracleDB, nClass) {
-  classPred <- generateMemory(oracleDB, nClass)
+predictEnsemble <- function(ensemble, oracleDB, all_levels) {
+  classPred <- generateMemory(oracleDB, length(all_levels), all_levels)
   for (cl in ensemble) {
     pred <- predictClass(cl, oracleDB)
     pos <- match(pred, colnames(classPred))

@@ -50,6 +50,7 @@ for (ratio in ratios) {
         originalDB <- getDatabase(dataset)
         trainTest <- holdout(originalDB$class, .75, mode = "random", seed = seed)
         dataTrain <- originalDB[trainTest$tr, ]
+        all_levels <- sort(levels(dataTrain$class))
         folds <- stratifiedKFold(dataTrain, dataTrain$class)
         dataTest <- originalDB[trainTest$ts, ]
         rm(originalDB, trainTest)
@@ -80,7 +81,7 @@ for (ratio in ratios) {
                                samplesClass = length(class))
             if (it > 1) {
               ensemblePred <- predictEnsemble(ensemble, data[batchLabeled, ],
-              length(levels(data$class[batchLabeled])))
+                                              all_levels)
               cmLabeled <- table(ensemblePred, data$class[batchLabeled])
               ensembleAcc <- getAcc(cmLabeled)
               if (ensembleAcc < 0.8) {

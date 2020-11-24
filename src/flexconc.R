@@ -123,9 +123,9 @@ diffConfCheck <- function(data1It, dataXIt, confValue, index1It, index) {
 #'
 #' @return A matrix (number of samples x number of distinct classes).
 #'
-generateMemory <- function(rawData, nClass) {
+generateMemory <- function(rawData, nClass, all_levels) {
   memo <- matrix(rep(0, nrow(rawData) * nClass), nrow(rawData), nClass, FALSE,
-                 list(rownames(rawData), sort(levels(rawData$class))))
+                 list(rownames(rawData), sort(all_levels)))
   rm(rawData)
   return(memo)
 }
@@ -160,14 +160,14 @@ flexConC <- function(learner, predFunc, classDist, initialAcc, method, data,
   if (min(classDist$samplesClass) < 10) {
     minClass <- min(classDist$samplesClass)
   } else {
-    minClass <-floor(min(classDist$samplesClass) * 0.1)
+    minClass <- floor(min(classDist$samplesClass) * 0.1)
   }
   nClass <- nrow(classDist)
   trainSetIds <- c()
   oldTrainSetIds <- c()
   # FlexCon-C1 only
   if ((method == "1") || (method == "2")) {
-    memo <- generateMemory(data, nClass)
+    memo <- generateMemory(data, nClass, levels(data$class[sup]))
   }
   addRotSuperv <- FALSE
   while ((it < maxIts) && (length(sup) < nrow(data))) {
