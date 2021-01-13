@@ -1,9 +1,7 @@
 version: '3.6'
 
 services:
-  flexcon:
+  ssl:
     build: .
-    env_file:
-      - ./config.env
     volumes:
-      - ./results;/R/karliane/projeto_karliane/flexcon_c
+      - ./;/workspace/ssl

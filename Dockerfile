@@ -17,13 +17,13 @@ ENV JAVA_CPPFLAGS -I/usr/lib/jvm/java-1.8-openjdk/jre/../include -I/usr/lib/jvm/
 ENV JAVA_LD_LIBRARY_PATH /usr/lib/jvm/java-1.8-openjdk/jre/lib/amd64/server
 ENV PATH=$JAVA_HOME/bin:$PATH
 
-RUN mkdir -p workspace/ssl-dds/
+RUN mkdir -p /workspace/ssl/
 
 # Copiando tudo da pasta para lá
 # COPY flexcon_c/ R/karliane/projeto_karliane/flexcon_c
 # COPY bases/ R/karliane/projeto_karliane/bases
 # Seting a workdir
-WORKDIR workspace/ssl-dds/
+WORKDIR /workspace/ssl/
 
 # R runtime dependencies
 RUN apk --no-cache add \
@@ -109,22 +109,14 @@ RUN apk --no-cache add \
     R CMD INSTALL . && \
     cd ../../.. && \
     rm -rf /tmp/* && \
-    cd workspace/ssl-dds
+    cd /workspace/ssl
 # Setup the dirs
-
-COPY ./src/utils.R ./src/utils.R
 
 # R Configuring JAVA enviroment
 RUN R CMD javareconf
 
 # R installing the all need packages to run the experiment
-RUN R -e "source('src/utils.R')"
-
-COPY ./datasets ./datasets
-
-COPY ./src ./src
-
-COPY ./main.R ./main.R
+RUN R -e "install.packages(c('RWeka', 'rminer'))"
 
 # The basic state of this container is running the experiment with NaiveBayes classifier
 CMD ["Rscript", "main.R"]
