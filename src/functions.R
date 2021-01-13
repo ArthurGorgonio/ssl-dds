@@ -118,42 +118,6 @@ criar_visao <- function(dados) {
   return(visoes)
 }
 
-
-#' @description Function to define constants in all code
-#'
-defines <- function() {
-  accC1S <<- c()
-  accC1V <<- c()
-  accC2 <<- c()
-  baseClassifiers <<- learner("J48", list(control = Weka_control(C = 0.05)))
-  ensemble <- c()
-  extention <<- ".csv"
-  label <<- "class"
-  form <<- as.formula("class ~ .")
-  funcType <<- "probability"
-  # trainSet <<- c()
-  # training <<- c()
-  # # FlexCon-C1 variables
-  # globalIt <<- c()
-  # db <<- c()
-  # confValue <<- c()
-  # globalSamplasAdd <<- c()
-  # percentageLabelSamples <<- c()
-  # globalAcc <<- c()
-  # glocalCorrect <<- c()
-  # # FlexCon-C2 variables
-  # it_g_3 <<- c()
-  # bd_g_3 <<- c()
-  # thrConf_g_3 <<- c()
-  # nr_added_exs_g_3 <<- c()
-  # tx_g_3 <<- c()
-  # acc_g_3 <<- c()
-  # acertou_g_3 <<- c()
-  # grad_g <<- c()
-  # bd <<- c()
-  # tx <<- c()
-}
-
 #' @description Create a classifier from a data set.
 #'
 #' @param learner A classifier will be trained.

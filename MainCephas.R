@@ -12,13 +12,17 @@ setWorkspace <- function() {
   }
 }
 
-# setWorkspace()
+setWorkspace()
 scripts <- list.files()
 for (scri in scripts) {
   source(scri)
 }
 rm(scripts, scri)
-defines()
+baseClassifiers <- learner("J48", list(control = Weka_control(C = 0.05)))
+extention <- ".csv"
+label <- "class"
+form <- as.formula("class ~ .")
+funcType <- "probability"
 meansFlexConC1S <- c()
 method <- 1
 databases <- list.files(path = "../datasets")
