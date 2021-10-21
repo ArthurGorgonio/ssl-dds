@@ -1,3 +1,45 @@
+#' ==============================================================
+#' CLASS: learner
+#' ==============================================================
+#' Luis Torgo, Jan 2009
+#' ==============================================================
+#' 
+setClass("learner", representation(func="character",pars="list"))
+
+
+#' --------------------------------------------------------------
+#' constructor function
+learner <- function(func,pars=list()) {
+  if (missing(func)) stop("\nYou need to provide a function name.\n")
+  new("learner",func=func,pars=pars)
+}
+
+# show
+setMethod("show","learner", function(object) {
+  cat('\nLearner:: ',deparse(object@func),'\n\nParameter values\n')
+  for(n in names(object@pars))
+    cat('\t',n,' = ',deparse(object@pars[[n]]),'\n')
+  cat('\n\n')
+  }
+)
+
+#' =====================================================
+#' Function that can be used to call a learning system
+#' whose information is stored in an object of class learner.
+#' =====================================================
+#' Luis Torgo, Fev 2009
+#' =====================================================
+#' Example run:
+#' l  <- learner('nnet',pars=list(size=4,linout=T))
+#' runLearner(l,medv ~ ., Boston)
+#'
+runLearner <- function(l,...) {
+  if (!inherits(l,'learner')) stop(l,' is not of class "learner".')
+  do.call(l@func,c(list(...),l@pars))
+}
+
+
+
 #' @description Select the best model to compose the ensemble of classifiers.
 #'
 #' @param ensemble The ensemble.
@@ -61,11 +103,11 @@ measureEnsemble <- function(ensemble, dataOracle) {
 #'
 #' @return A dataset set predicted using the model.
 #'
-predictClass <- function(model, testDB) {
+predictClass <- function(model, testDB, type = "class") {
   colunsNames <- colnames(testDB)
   dbClassOff <- match("class", colunsNames)
   testData <- testDB[, -dbClassOff]
-  prediction <- predict(model, testData, "class")
+  prediction <- predict(model, testData, type)
   return(prediction)
 }
 
@@ -80,7 +122,39 @@ predictEnsemble <- function(ensemble, oracleDB, all_levels) {
   }
   allClassify <- c()
   for (sample in 1:length(pos)) {
-    allClassify <- c(allClassify, which.max(classPred[sample,]))
+    if (length(which(classPred[sample,] == max(classPred[sample,]))) == 1) {
+      allClassify <- c(allClassify, which.max(classPred[sample,]))
+    } else{
+      allClassify <- c(allClassify, classPred[sample, ]
+                       [sample(1:length(which(
+                         classPred[sample,] == max(classPred[sample,]))), 1)])
+    }
+  }
+  ensemblePred <- factor(names(allClassify), levels(oracleDB$class))
+  return(ensemblePred)
+}
+
+
+
+predictEnsembleConfidence <- function(ensemble, ensemble_weights, oracleDB,
+                                      all_levels) {
+  classPred <- generateMemory(oracleDB, length(all_levels), all_levels)
+  for (cl in 1:length(ensemble)) {
+    pred <- predictClass(ensemble[[cl]], oracleDB, "probability") * ensemble_weights[cl]
+    pos <- match(colnames(pred),colnames(classPred))
+    for(j in 1:length(pos)){
+      classPred[,j] <- classPred[,j] + pred[,pos[j]]
+    }
+  }
+  allClassify <- c()
+  for (sample in 1:nrow(oracleDB)) {
+    if (length(which(classPred[sample,] == max(classPred[sample,]))) == 1) {
+      allClassify <- c(allClassify, which.max(classPred[sample,]))
+    } else{
+      allClassify <- c(allClassify, classPred[sample, ]
+                       [sample(1:length(which(
+                         classPred[sample,] == max(classPred[sample,]))), 1)])
+    }
   }
   ensemblePred <- factor(names(allClassify), levels(oracleDB$class))
   return(ensemblePred)
@@ -111,4 +185,18 @@ swapEnsemble <- function(ensemble, dataOracle, oracle) {
   ensemble <- removingEnsemble(ensemble, dataOracle)
   ensemble <- addingEnsemble(ensemble, oracle)
   return(ensemble)
+}
+
+
+weightEnsemble <- function(ensemble, oracleDB, all_levels, type = "acc") {
+  classfiers_weights <- c()
+  for (cl in ensemble) {
+    cm <- confusionMatrix(cl, oracleDB)
+    switch (type,
+      "acc" = value <- getAcc(cm),
+      "fmeasure" = value <- fmeasure(cm)
+    )
+    classfiers_weights <- c(classfiers_weights, value)
+  }
+  return(classfiers_weights)
 }

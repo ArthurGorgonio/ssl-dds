@@ -12,6 +12,20 @@ calcLocalAcc <- function(c, iniLabDB, trainSet) {
   return(getAcc(confMat))
 }
 
+calculate_centroid <- function(labeled) {
+  classes <- levels(droplevels(labeled$class))
+  features <- ncol(labeled) - 1
+  centroid <- matrix(rep(0, features), nrow = length(classes), ncol = features)
+  rownames(centroid) <- classes
+  for(cl in classes) {
+    instances <- which(labeled$class == cl)
+    for (feature in 1:features) {
+      centroid[cl, feature] <- mean(labeled[instances, feature])
+    }
+  }
+  return (centroid)
+}
+
 #' @description Generate the confusion matrix of the model.
 #'
 #' @param model A trained classifier will be tested.
@@ -75,6 +89,16 @@ defines <- function(k) {
   funcType <<- rep("probability", 21)
 }
 
+euclidian_distance <- function(a, b) {
+  return (sqrt(sum((a - b)^2)))
+}
+
+fixDataset <- function(dataset, fold) {
+  newDataset <- dataset[order(as.numeric(row.names(dataset))),]
+  newDataset <- newDataset[-match(as.character(fold), row.names(newDataset)),]
+  return(newDataset)
+}
+
 #' @description Create a classifier from a data set.
 #'
 #' @param learner A classifier will be trained.
@@ -112,6 +136,12 @@ generateProbPreds <- function(model, dataUnl, predFunc) {
 getRealId <- function(dataset, sup) {
   ids <- as.integer(rownames(dataset))
   return(ids[-sup])
+}
+
+knora <- function(ensemble, data_labelled, data_classes, data_unlabelled,
+                  type = "E", k = 7) {
+  
+  return(new_ensemble)
 }
 
 #' @description This function set the class atribute to NA without change the

@@ -36,19 +36,30 @@ atribArgs <- function(arguments, databases) {
 
 
 #' @description Install packages if it was not installed and load them.
-#'
+#' Why these packages?
+#' plyr -> apply functions in hole dataset (lapply, ddply)
+#' PMCMRplus -> Statistical Tests in a easy way
+#' RWeka -> Weka classifiers they have the same struct nd are easy to use
+#' RMOA -> API for MOA software for classifiers 
+#' rminer -> Holdout function 
 installNeedPacks <- function() {
-  packages <- c("plyr", "DMwR", "DMwR2", "RWeka", "rminer", "e1071", "ggplot2",
-                "PMCMR", "ssc", "scmamp", "RMOA", "foreign")
+  # packages <- c(, "DMwR", "RWeka", , "PMCMRplus", "ssc",
+                # "RMOA", "foreign")
+  packages <- c("plyr", "PMCMRplus", "RWeka", "RMOA", "rminer", "RPushbullet",
+                "jsonlite")
   if (!require("BiocManager")) {
     install.packages("BiocManager")
   }
   for (pack in packages) {
     if (!require(pack, character.only = TRUE)) {
-      BiocManager::install(pack)
+      install.packages(pack)
     }
     library(pack, character.only = TRUE, verbose = F)
   }
 }
 
 installNeedPacks()
+
+token <- fromJSON("../token.txt")
+
+pbSetup(token$key, defdev = 1)

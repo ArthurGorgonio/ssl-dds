@@ -59,3 +59,49 @@ writeArchive <- function(title, prefix, dataName, modelName, acc, f1, preci,
   content <- paste(headers, line, time, sep = "\n")
   write(content, filePath, append = append, sep = sep)
 }
+
+headerDetailedOutputEnsemble <- function(title, prefix, dataName, modelName,
+                                         append = T, row = F, col = F, 
+                                         sep = " ") {
+  pattern <- "%d/%m/%Y %X"
+  details <- paste("In each iteration, info means:",
+  "info01: ensemble size;",
+  "info02: ensemble hits;",
+  "info03: ensemble errors;",
+  "info04: ensemble Acc;",
+  "info05: ensemble F-Measure;",
+  "info06: ensemble weight hits;",
+  "info07: ensemble weight errors;",
+  "info08: ensemble Acc Weighted;",
+  "info09: ensemble F-Measure Weighted;",
+  "info10: ensemble detect a drift;",
+  "info11: Total processed instances;",
+  "info12: Elapsed iteration time.",
+  sep = "\n")
+  filePath <- paste(prefix, title, sep = "/")
+  separ <- paste(rep("-", 80), collapse = "")
+  metrics <- format(c("info01", "info02", "info03", "info04", "info05", "info06",
+                      "info07", "info08", "info09", "info10", "info11", "info12"),
+                   justify = 'r', width = 11)
+  dbName <- paste("@DATASET:", dataName)
+  modelName <- paste("@Model:", modelName, sep = "\t")
+  headers <- paste(separ, dbName, modelName, separ, details,
+                   separ, sep = "\n")
+  write(headers, filePath, append = append, sep = sep)
+  cat(metrics, "\n", file = filePath, append = append)
+}
+
+detailedOutputEnsemble <- function(title, prefix, size, hits, error, acc, fscore,
+                                   hits_weight, error_weight, acc_weight,
+                                   fscore_weight, detect_drift, processed,
+                                   enlapsed_it, append = T, row = F, col = F,
+                                   sep = " ") {
+  pattern <- "%d/%m/%Y %X"
+  filePath <- paste(prefix, title, sep = "/")
+  content <- format(c(size, hits, error, round(acc, 3), round(fscore, 3),
+                      hits_weight, error_weight, round(acc_weight, 3),
+                      round(fscore_weight, 3), detect_drift, processed,
+                      paste(round(enlapsed_it, 3), "min", sep = " ")), 
+                    justify = "right", width = 11, scientific = F)
+  cat(content, "\n", file = filePath, append = append)
+}
