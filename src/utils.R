@@ -1,7 +1,7 @@
 atribArgs <- function(arguments, databases) {
   params <- list()
   params$ratios <- c(0.05, 0.1)
-  params$lengthBatch <- c(500, 5000)
+  params$lengthBatch <- c(100, 250, 500, 750, 1000, 2500, 5000)
   params$iniIndex <- 1
   params$finIndex <- length(databases)
   params$seeds <- c(1, 3, 7)
@@ -16,6 +16,7 @@ atribArgs <- function(arguments, databases) {
               params$finIndex <- param
             },
             '-l' = {
+              cat(param)
               params$lengthBatch <- param
             },
             '-r' = {

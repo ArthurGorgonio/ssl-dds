@@ -1,28 +1,34 @@
-fixCM <- function(cm) {
-  if (nrow(cm) < ncol(cm)) {
-    truePos <- match(rownames(cm), colnames(cm))
-    newCM <- matrix(rep(0,2*ncol(cm)), nrow = ncol(cm), ncol = ncol(cm))
-    colnames(newCM) <- colnames(cm)
-    rownames(newCM) <- colnames(cm)
-    newCM[truePos,] <- cm
-  } else {
-    truePos <- match(colnames(cm), rownames(cm))
-    newCM <- matrix(rep(0,2*nrow(cm)), nrow = nrow(cm), ncol = nrow(cm))
-    colnames(newCM) <- rownames(cm)
-    rownames(newCM) <- rownames(cm)
-    newCM[, truePos] <- cm
+#' @description Fix the confusion matrix to be quadratic in number of distinct
+#'   classes
+#'
+#' @param cm The confusion matrix of a model.
+#' @param all_classes A vector with all distinct classes in the data set.
+#'
+#' @return A new confusion matrix with fix width and height.
+#'
+fixCM <- function(cm, all_classes) {
+  true_cm <- matrix(rep(0, length(all_classes)^2), nrow=length(all_classes))
+  colnames(true_cm) <- all_classes
+  rownames(true_cm) <- all_classes
+  true_row <- match(rownames(cm), all_classes)
+  true_col <- match(colnames(cm), all_classes)
+  for (i in 1:nrow(cm)) {
+    for (j in 1:ncol(cm)) {
+      true_cm[true_row[i], true_col[j]] <- cm[i, j]
+    }
   }
-  return(newCM)
+  return(true_cm)
 }
 
-#' @description Calculate the acc of the main diagonal of the matrix.
+
+#' @description Calculate the accuracy of the main diagonal of the matrix.
 #'
-#' @param matrix The confusion matrix of a model.
+#' @param cm The confusion matrix of a model.
 #'
 #' @return The accuracy.
 #'
-getAcc <- function(matrix) {
-  acc <- ((sum(diag(matrix)) / sum(matrix)))
+getAcc <- function(cm) {
+  acc <- ((sum(diag(cm)) / sum(cm)))
   return(acc)
 }
 
@@ -39,7 +45,6 @@ precision <- function(cm) {
     tryCatch({
       tp = cm[i, i]
     }, error = function(e) {
-      tp = 0
     })
     fp <- sum(cm[i,]) - tp
     if (!((fp == 0) && (tp == 0))) {
@@ -48,6 +53,7 @@ precision <- function(cm) {
   }
   return(mean(preci))
 }
+
 
 #' @description Calculate the recall using the confusion matrix.
 #'
@@ -61,16 +67,16 @@ recall <- function(cm) {
     tryCatch({
         tp = cm[i, i]
       }, error = function(e){
-        tp = 0
       }
     )
-    fn <- sum(cm[,i]) - tp
+    fn <- sum(cm[, i]) - tp
     if (!((fn == 0) && (tp == 0))) {
       recal <- c(recal, (tp / (tp + fn)))
     }
   }
   return(mean(recal))
 }
+
 
 #' @description Calculate the f-measure using the confusion matrix.
 #'
@@ -82,4 +88,22 @@ fmeasure <- function(cm) {
   pre <- precision(cm)
   recal <- recall(cm)
   return(2 * ((pre * recal) / (pre + recal)))
+}
+
+
+#' @description Calculate the kappa statistics using the confusion matrix.
+#'
+#' @param cm The confusion matrix of a model.
+#'
+#' @return The kappa statistics..
+#'
+kappa <- function(cm) {
+  acc <- getAcc(cm)
+  prob <- c()
+  for(i in 1:nrow(cm)) {
+    prob <- c(prob, sum(cm[, i] / sum(cm)))
+    prob <- c(prob, sum(cm[i,] / sum(cm)))
+  }
+  mult_prob <- prob[c(T, F)] * prob[c(F, T)]
+  return((acc - sum(mult_prob)) / (1 - sum(mult_prob)))
 }

@@ -4,18 +4,17 @@
 #' Luis Torgo, Jan 2009
 #' ==============================================================
 #' 
-setClass("learner", representation(func="character",pars="list"))
-
+setClass("learner", representation(func="character", pars="list"))
 
 #' --------------------------------------------------------------
 #' constructor function
-learner <- function(func,pars=list()) {
+learner <- function(func, pars=list()) {
   if (missing(func)) stop("\nYou need to provide a function name.\n")
-  new("learner",func=func,pars=pars)
+  new("learner", func=func, pars=pars)
 }
 
 # show
-setMethod("show","learner", function(object) {
+setMethod("show", "learner", function(object) {
   cat('\nLearner:: ',deparse(object@func),'\n\nParameter values\n')
   for(n in names(object@pars))
     cat('\t',n,' = ',deparse(object@pars[[n]]),'\n')
@@ -111,13 +110,14 @@ predictClass <- function(model, testDB, type = "class") {
   return(prediction)
 }
 
-predictEnsemble <- function(ensemble, oracleDB, all_levels) {
+predictEnsemble <- function(ensemble, ensemble_weights, oracleDB, all_levels) {
   classPred <- generateMemory(oracleDB, length(all_levels), all_levels)
-  for (cl in ensemble) {
+  for (id in 1:length(ensemble)) {
+    cl <- ensemble[[id]]
     pred <- predictClass(cl, oracleDB)
     pos <- match(pred, colnames(classPred))
     for (sample in 1:length(pos)) {
-      classPred[sample, pos[sample]] <- classPred[sample, pos[sample]] + 1
+      classPred[sample, pos[sample]] <- classPred[sample, pos[sample]] + (1 * ensemble_weights[id])
     }
   }
   allClassify <- c()
@@ -130,7 +130,7 @@ predictEnsemble <- function(ensemble, oracleDB, all_levels) {
                          classPred[sample,] == max(classPred[sample,]))), 1)])
     }
   }
-  ensemblePred <- factor(names(allClassify), levels(oracleDB$class))
+  ensemblePred <- factor(names(allClassify), all_levels)
   return(ensemblePred)
 }
 
@@ -143,7 +143,7 @@ predictEnsembleConfidence <- function(ensemble, ensemble_weights, oracleDB,
     pred <- predictClass(ensemble[[cl]], oracleDB, "probability") * ensemble_weights[cl]
     pos <- match(colnames(pred),colnames(classPred))
     for(j in 1:length(pos)){
-      classPred[,j] <- classPred[,j] + pred[,pos[j]]
+      classPred[,pos[j]] <- classPred[,pos[j]] + pred[,j]
     }
   }
   allClassify <- c()
@@ -156,7 +156,7 @@ predictEnsembleConfidence <- function(ensemble, ensemble_weights, oracleDB,
                          classPred[sample,] == max(classPred[sample,]))), 1)])
     }
   }
-  ensemblePred <- factor(names(allClassify), levels(oracleDB$class))
+  ensemblePred <- factor(names(allClassify), all_levels)
   return(ensemblePred)
 }
 
@@ -192,9 +192,11 @@ weightEnsemble <- function(ensemble, oracleDB, all_levels, type = "acc") {
   classfiers_weights <- c()
   for (cl in ensemble) {
     cm <- confusionMatrix(cl, oracleDB)
+    cm <- fixCM(cm, all_levels)
     switch (type,
       "acc" = value <- getAcc(cm),
-      "fmeasure" = value <- fmeasure(cm)
+      "fmeasure" = value <- fmeasure(cm),
+      "kappa" = value <- kappa(cm)
     )
     classfiers_weights <- c(classfiers_weights, value)
   }
