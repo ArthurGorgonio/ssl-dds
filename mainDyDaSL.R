@@ -28,8 +28,9 @@ scripts <- list.files()
 for (scri in scripts) {
   source(scri)
 }
+path <- "../results/detailed"
 rm(scripts, scri)
-databases <- list.files(path = "../datasets/")[2]
+databases <- list.files(path = "../datasets/")[c(4, 10, 11)]
 myParam <- atribArgs(args, databases)
 ratios <- myParam$ratios
 seeds <- myParam$seeds
@@ -37,8 +38,7 @@ lengthBatch <- myParam$lengthBatch
 databases <- databases[myParam$iniIndex:myParam$finIndex]
 # for (ratio in ratios) {
   ratio <- 0.1
-  # for (dataLength in lengthBatch) {
-    dataLength <- 500
+  for (dataLength in lengthBatch) {
     kValue <- floor(sqrt(dataLength))
     defines(kValue)
     for (dataset in databases) {
@@ -49,7 +49,7 @@ databases <- databases[myParam$iniIndex:myParam$finIndex]
         calculate <- TRUE
         epoch <- epoch + 1
         cat("\n\n\nRODADA: ", epoch, "\n\n\n\n")
-        set.seed(seed)
+        set.seed(19)
         originalDB <- getDatabase(dataset, path = "../datasets/")
         trainTest <- holdout(originalDB$class, .9, mode = "random", seed = 1)
         dataTrain <- originalDB[trainTest$tr, ]
@@ -97,15 +97,16 @@ databases <- databases[myParam$iniIndex:myParam$finIndex]
                 calculate <- FALSE
                 acceptabelAcc <- round(ensembleAcc, 2)
               }
-              if (ensembleAcc < acceptabelAcc) {
+              if (ensembleAcc < acceptabelAcc * 0.99) {
+                detect_drift <- TRUE
                 typeClassifier <- shuffleClassify(1)
                 learner <- baseClassifiers[[typeClassifier]]
                 initialAcc <- supAcc(learner, data[batchLabeled, ])
                 oracle <- flexConC(learner, funcType[typeClassifier], classDist,
-                                  initialAcc, "1", data, batchLabeled,
-                                  learner@func)
+                                   initialAcc, "1", data, batchLabeled,
+                                   learner@func)
                 oraclePred <- predictClass(oracle, batch)
-                ensemble <- swapEnsemble(ensemble, dataTrain, oracle)
+                ensemble <- swapEnsemble(ensemble, data, oracle)
                 calculate <- TRUE
               }
             } else {
@@ -138,5 +139,5 @@ databases <- databases[myParam$iniIndex:myParam$finIndex]
                      epoch)
       # }
     }
-#   }
+  }
 # }
