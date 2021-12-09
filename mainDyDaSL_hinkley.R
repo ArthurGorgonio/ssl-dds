@@ -43,10 +43,10 @@ for (dataLength in lengthBatch) {
   kValue <- floor(sqrt(dataLength))
   for (dataset in databases) {
     dataName <- strsplit(dataset, ".", T)[[1]][1]
-    script_name <- "_mainDyDaSL_Normal_"
+    script_name <- "_mainDyDaSL_HinkleyN_"
     fileName <- paste(ratio * 100, dataName, script_name, dataLength, ".txt", sep = "")
     title <- paste("test", fileName, sep = "")
-    headerDetailedOutputEnsemble(title, path, dataName, "DyDaSL - Simple Vote")
+    headerDetailedOutputEnsemble(title, path, dataName, "DyDaSL - Simple Hinkley")
     cat(dataName)
     epoch <- 0
     calculate <- TRUE
@@ -84,14 +84,13 @@ for (dataLength in lengthBatch) {
                                           data[batchLabeled, ],
                                           all_classes)
           for (instance in 1:length(data$class[batchLabeled])) {
-            x <- getAcc(
-                fixCM(
-                  table(data$class[batchLabeled][instance],
-                        ensemblePred[instance]), all_classes
-                )
-              )
-            hinkley <- page_hinkley.set_input(hinkley, x)
-            if (hinkley@change_detected) {
+            y_pred <- getAcc(
+                        fixCM(
+                          table(data$class[batchLabeled][instance],
+                                ensemblePred[instance]), all_classes
+                        )
+                      )
+            if (hinkley$set_input(y_pred)) {
               break
             }
           }
@@ -99,7 +98,7 @@ for (dataLength in lengthBatch) {
           cmLabeled <- fixCM(cmLabeled, all_classes)
           ensembleAcc <- getAcc(cmLabeled)
           cat("Accuracy Ensemble:\t", ensembleAcc, "\n")
-          if (hinkley@change_detected) {
+          if (hinkley$change_detected) {
             detect_drift <- TRUE
             train_sucess <- FALSE
             while (!train_sucess) {
@@ -135,6 +134,7 @@ for (dataLength in lengthBatch) {
             ensemble <- addingEnsemble(ensemble, model)
           } # END FOR
           ensemble_weights <- rep(1, length(ensemble))
+          hinkley <- page_hinkley()
         } # END ELSE
       } # END ELSE
       end <- Sys.time()
