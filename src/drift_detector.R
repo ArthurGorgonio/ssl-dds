@@ -1,13 +1,13 @@
 #' @description Concept drift detection following the formula from
 #'  'Knowledge Discovery from Data Streams' by João Gamma (p. 76)
 #'  
-#'  @describeIn This code is a R port from the code avaliable in:
+#' @describeIn This code is a R port from the code avalaible in:
 #'   https://github.com/blablahaha/concept-drift
-#'  
 #'  
 #' @param delta default value is 0.005
 #' @param lambda default value is 50
 #' @param alpha default value is 1 - 0.0001 = 0.9999
+#'  
 page_hinkley <- setRefClass("page_hinkley",
                             fields = list(delta_='numeric', lambda_='numeric',
                                         alpha_='numeric', sum_='numeric',
@@ -47,3 +47,41 @@ page_hinkley <- setRefClass("page_hinkley",
                             )
 )
 
+CPSSDS <- setRefClass('CPSSDS',
+                      fields = list(last_chunk='factor',
+                                    actual_chunk='factor',
+                                    statistical_test='character',
+                                    change_detected='logical'),
+                      methods = list(
+                        initialize = function(...,
+                                              statistical_test='kolmogorov') {
+                          statistical_test <<- statistical_test
+                          change_detected <<- FALSE
+                        },
+                        .eval_test = function() {
+                          switch (statistical_test,
+                            'kolmogorov' = {
+                              test <- ks.test(as.numeric(last_chunk),
+                                              as.numeric(actual_chunk))
+                            },
+                            't-test' = {
+                              test <- t.test(as.numeric(last_chunk),
+                                             as.numeric(actual_chunk))
+                            }
+                          )
+                          return(test)
+                        },
+                        detect_drift = function() {
+                          change_detected <<- FALSE
+                          p <- .eval_test()
+                          if (p$p.value < 0.05) {
+                            change_detected <<- TRUE
+                          }
+                          return(change_detected)
+                        },
+                        get_chunk = function(labels) {
+                          last_chunk <<- actual_chunk
+                          actual_chunk <<- labels
+                        }
+                      )
+)
