@@ -5,14 +5,18 @@ import numpy as np
 base_path = 'results/detailed/'
 
 
-base_name = ['DyDaSL N - ', 'DyDaSL FT - ', 'DyDaSL W - ']
+base_name = ['DyDaSL N - ', 'DyDaSL NFT - ', 'DyDaSL W - ', 'DyDaSL H - ']
+base_name.sort()
 base_batch = [100, 250, 500, 750, 1000, 2500, 5000]
+drift_names = ['Drift – N', 'Drift – NFT', 'Drift – W', 'Drift – H']
+drift_names.sort()
+
 
 files = glob.glob(base_path + '*.txt')
 data_name = [i.split('/')[-1].split('_')[0][6:] for i in files]
 datasets = list(set(data_name))
 
-header = ['DyDaSL N', 'DyDaSL FT', 'DyDaSL W', 'Mean N', 'Mean FT', 'Mean W']
+header = ['DyDaSL N', 'DyDaSL FT', 'DyDaSL W', 'Hinkley', 'Mean N', 'Mean FT', 'Mean W', 'Mean H']
 
 
 def save_data(path: str, values: list, column_names: list):
@@ -24,13 +28,15 @@ def save_data(path: str, values: list, column_names: list):
 def cumulative_sum(path: str, values: list, column_names: list):
     data = pd.DataFrame(values).transpose()
     data.columns = column_names
+    data['Drift – H'] = np.where(data['Drift – H'], 1, 0)
     data['Drift – N'] = np.where(data['Drift – N'], 1, 0)
-    data['Drift – FT'] = np.where(data['Drift – FT'], 1, 0)
+    data['Drift – NFT'] = np.where(data['Drift – NFT'], 1, 0)
     data['Drift – W'] = np.where(data['Drift – W'], 1, 0)
-    data['N Frequency'] = data['Drift – N'].cumsum() / sum(data['Drift – N'])
-    data['FT Frequency'] = data['Drift – FT'].cumsum() / \
-        sum(data['Drift – FT'])
-    data['W Frequency'] = data['Drift – W'].cumsum() / sum(data['Drift – W'])
+    data['H Frequency'] = data['Drift – H'].cumsum() / (sum(data['Drift – H']) if sum(data['Drift – H']) > 0 else 1)
+    data['N Frequency'] = data['Drift – N'].cumsum() / (sum(data['Drift – N']) if sum(data['Drift – N']) > 0 else 1)
+    data['NFT Frequency'] = data['Drift – NFT'].cumsum() / \
+        (sum(data['Drift – NFT']) if sum(data['Drift – NFT']) > 0 else 1)
+    data['W Frequency'] = data['Drift – W'].cumsum() / (sum(data['Drift – W']) if sum(data['Drift – W']) > 0 else 1)
     data.to_csv(path, sep='\t', header=False)
 
 
@@ -79,8 +85,7 @@ for pattern in datasets:
         save_data('plots/kappa/' + pattern + '_kappa-' +
                   str(batch) + '.csv', kappa_batch, header)
         cumulative_sum('plots/drift/' + pattern + '_drift-' + str(batch) +
-                       '.csv', drift_batch, ['Drift – N', 'Drift – FT',
-                                             'Drift – W'])
+                       '.csv', drift_batch, drift_names)
     print('Acc: ', len(acc_mean), '\nF1S: ', len(f1_mean), '\nKap: ', len(
         kappa_mean), '\nDri: ', len(drift_count), '\nNam: ', len(data_name))
     pd.DataFrame(zip(data_name, acc_mean, f1_mean, kappa_mean, drift_count),

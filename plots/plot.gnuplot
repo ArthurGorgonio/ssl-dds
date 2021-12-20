@@ -1,4 +1,4 @@
-set terminal png size 1362,666
+set terminal png size 1362,666;
 set output ARG5;
 set key outside;
 set key right top;
@@ -17,26 +17,32 @@ if (ARG6 eq "1") {
 set title ARG4;
 
 purple = "#8500bb";
-blue = "#ba8b13";
+yellow = "#ba8b13";
 green = "#00bb7d";
+blue = "#0A9EC7";
+red = "#FA5025";
 
 data = "< paste ".ARG1." ".ARG2.";
 
 if (ARG7 eq "1") {
-    plot data using 1:5 title 'DyDaSL - N' w l lt rgb purple lw 2, \
-    data using 1:($9==1 ? column(5) : NaN) title 'Drift - N' pt 3 ps 1.5 lt rgb purple, \
-    data using 1:6 title 'DyDaSL - FT' w l lt rgb blue lw 2, \
-    data using 1:($10==1 ? column(6) : NaN) title 'Drift - FT' pt 4 ps 1.5 lt rgb blue, \
-    data using 1:7 title 'DyDaSL - W' w l lt rgb green lw 2, \
-    data using 1:($11==1 ? column(7) : NaN) title 'Drift - W' pt 6 ps 1.5 lt rgb green
+    plot data using 1:6 title 'Hinkley' w l lt rgb blue lw 2, \
+    data using 1:($11==1 ? column(6) : NaN) title 'Drift - H' pt 4 ps 1.5 lt rgb blue, \
+    data using 1:7 title 'DyDaSL - N' w l lt rgb purple lw 2, \
+    data using 1:($12==1 ? column(7) : NaN) title 'Drift - N' pt 3 ps 1.5 lt rgb purple, \
+    data using 1:8 title 'DyDaSL - FT' w l lt rgb yellow lw 2, \
+    data using 1:($13==1 ? column(8) : NaN) title 'Drift - FT' pt 4 ps 1.5 lt rgb yellow, \
+    data using 1:9 title 'DyDaSL - W' w l lt rgb green lw 2, \
+    data using 1:($14==1 ? column(9) : NaN) title 'Drift - W' pt 6 ps 1.5 lt rgb green,
 } else {
     if (ARG7 eq "2") {
-        plot data using 1:2 title 'DyDaSL - N' w l lt rgb purple lw 2, \
-        data using 1:3 title 'DyDaSL - FT' w l lt rgb blue lw 2, \
-        data using 1:4 title 'DyDaSL - W' w l lt rgb green lw 2
+        plot data using 1:2 title 'Hinkley' w l lt rgb blue lw 2, \
+        data using 1:3 title 'DyDaSL - N' w l lt rgb purple lw 2, \
+        data using 1:4 title 'DyDaSL - FT' w l lt rgb yellow lw 2, \
+        data using 1:5 title 'DyDaSL - W' w l lt rgb green lw 2
     } else {
-        plot data using 1:5 title 'DyDaSL - N' w lp lt rgb purple lw 2 pt 3, \
-        data using 1:6 title 'DyDaSL - FT' w lp lt rgb blue lw 2 pt 4, \
-        data using 1:7 title 'DyDaSL - W' w lp lt rgb green lw 2 pt 6
+        plot data using 1:6 title 'Hinkley' w lp lt rgb blue lw 2, \
+        data using 1:7 title 'DyDaSL - N' w lp lt rgb purple lw 2, \
+        data using 1:8 title 'DyDaSL - FT' w lp lt rgb yellow lw 2, \
+        data using 1:9 title 'DyDaSL - W' w lp lt rgb green lw 2
     }
 }
