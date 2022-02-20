@@ -1,12 +1,12 @@
 setwd('~/workspace/ssl-dds/plots/')
 
 paths <- c('acc/', 'fscore/', 'kappa/')
-approaches <- c('Hinkley', 'DyDaSL - N', 'DyDaSL - FT', 'DyDaSL - W')
+approaches <- c('CPSSDS', 'Hinkley', 'DyDaSL - N', 'DyDaSL - FT', 'DyDaSL - W')
 for (path in paths) {
   media_data_frame <- data.frame()
   files <- list.files(path = path, pattern = '*.csv')
   for (file in files) {
-    data <- read.csv(paste(path, file, sep=''), sep='\t', row.names=1, header=F)
+    data <- read.csv(paste(path, file, sep=''), sep='\t', row.names=1)
     media <- round(as.numeric(
       data[nrow(data), (length(approaches) + 1):ncol(data)]) * 100, 2)
     media_data_frame <- rbind(media_data_frame, media)
@@ -78,7 +78,7 @@ path='drift/'
 media_data_frame <- data.frame()
 files <- list.files(path = path, pattern = '*.csv')
 for (file in files) {
-  data <- read.csv(paste(path, file, sep=''), sep='\t', row.names=1, header=F)
+  data <- read.csv(paste(path, file, sep=''), sep='\t', row.names=1)
   media <- c()
   for (i in 1:length(approaches)) {
     media <- c(media, round(sum(data[,i]), 2))

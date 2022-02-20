@@ -53,45 +53,45 @@ convertProbPreds <- function(probPreds) {
 #' @description Function to define constants in all code
 #'
 defines <- function() {
-  Naive <<- make_Weka_classifier("weka/classifiers/bayes/NaiveBayes", c("NaiveBayes", "bayes"))
-  DT <<- make_Weka_classifier("weka/classifiers/rules/DecisionTable", c("DecisionTable", "rules"))
-  baseClassifiers <<- c(learner("SMO", list(control = Weka_control(C = 1, K = list("PolyKernel", E = 1)))),
-                  learner("SMO", list(control = Weka_control(C = .8, K = list("PolyKernel", E = 1)))),
-                  learner("SMO", list(control = Weka_control(C = 1, K = list("NormalizedPolyKernel", E = 2)))),
-                  learner("SMO", list(control = Weka_control(C = 1, K = list("RBFKernel")))),
-                  learner("SMO", list(control = Weka_control(C = 1, K = list("Puk", O = 1, S = 1)))),
-                  learner("J48", list(control = Weka_control(C = .05))),
-                  learner("J48", list(control = Weka_control(C = .10))),
-                  learner("J48", list(control = Weka_control(C = .15))),
-                  learner("J48", list(control = Weka_control(C = .20))),
-                  learner("J48", list(control = Weka_control(C = .25))),
-                  learner("J48", list(control = Weka_control(C = .05, M = 2))),
-                  learner("J48", list(control = Weka_control(C = .10, M = 2))),
-                  learner("J48", list(control = Weka_control(C = .15, M = 2))),
-                  learner("J48", list(control = Weka_control(C = .20, M = 2))),
-                  learner("J48", list(control = Weka_control(C = .25, M = 2))),
-                  learner("J48", list(control = Weka_control(C = .07, M = 3))),
-                  learner("J48", list(control = Weka_control(C = .12, M = 3))),
-                  learner("J48", list(control = Weka_control(C = .17, M = 3))),
-                  learner("J48", list(control = Weka_control(C = .22, M = 3))),
-                  learner("J48", list(control = Weka_control(C = .27, M = 3))),
-                  learner("DT", list(control = Weka_control(X = 1, S = list("BestFirst", D = 1, N = 3)))),
-                  learner("DT", list(control = Weka_control(X = 1, S = list("BestFirst", D = 1, N = 5)))),
-                  learner("DT", list(control = Weka_control(X = 1, S = list("BestFirst", D = 1, N = 7)))),
-                  learner("IBk", list(control = Weka_control(K = 1, A = list("LinearNNSearch", A = "EuclideanDistance")))),
-                  learner("IBk", list(control = Weka_control(K = 3, A = list("LinearNNSearch", A = "EuclideanDistance")))),
-                  learner("IBk", list(control = Weka_control(K = 5, A = list("LinearNNSearch", A = "EuclideanDistance")))),
-                  learner("IBk", list(control = Weka_control(K = 3, A = list("LinearNNSearch", A = "ManhattanDistance")))),
-                  learner("IBk", list(control = Weka_control(K = 5, A = list("LinearNNSearch", A = "ManhattanDistance")))),
-                  learner("Naive", list(control = Weka_control())),
-                  learner("Naive", list(control = Weka_control(K = TRUE))),
-                  learner("Naive", list(control = Weka_control(D = TRUE)))
+  Naive <<- make_Weka_classifier('weka/classifiers/bayes/NaiveBayes', c('NaiveBayes', 'bayes'))
+  DT <<- make_Weka_classifier('weka/classifiers/rules/DecisionTable', c('DecisionTable', 'rules'))
+  baseClassifiers <<- c(learner('SMO', list(control = Weka_control(C = 1, K = list('PolyKernel', E = 1)))),
+                  learner('SMO', list(control = Weka_control(C = .8, K = list('PolyKernel', E = 1)))),
+                  learner('SMO', list(control = Weka_control(C = 1, K = list('NormalizedPolyKernel', E = 2)))),
+                  learner('SMO', list(control = Weka_control(C = 1, K = list('RBFKernel')))),
+                  learner('SMO', list(control = Weka_control(C = 1, K = list('Puk', O = 1, S = 1)))),
+                  learner('J48', list(control = Weka_control(C = .05))),
+                  learner('J48', list(control = Weka_control(C = .10))),
+                  learner('J48', list(control = Weka_control(C = .15))),
+                  learner('J48', list(control = Weka_control(C = .20))),
+                  learner('J48', list(control = Weka_control(C = .25))),
+                  learner('J48', list(control = Weka_control(C = .05, M = 2))),
+                  learner('J48', list(control = Weka_control(C = .10, M = 2))),
+                  learner('J48', list(control = Weka_control(C = .15, M = 2))),
+                  learner('J48', list(control = Weka_control(C = .20, M = 2))),
+                  learner('J48', list(control = Weka_control(C = .25, M = 2))),
+                  learner('J48', list(control = Weka_control(C = .07, M = 3))),
+                  learner('J48', list(control = Weka_control(C = .12, M = 3))),
+                  learner('J48', list(control = Weka_control(C = .17, M = 3))),
+                  learner('J48', list(control = Weka_control(C = .22, M = 3))),
+                  learner('J48', list(control = Weka_control(C = .27, M = 3))),
+                  learner('DT', list(control = Weka_control(X = 1, S = list('BestFirst', D = 1, N = 3)))),
+                  learner('DT', list(control = Weka_control(X = 1, S = list('BestFirst', D = 1, N = 5)))),
+                  learner('DT', list(control = Weka_control(X = 1, S = list('BestFirst', D = 1, N = 7)))),
+                  learner('IBk', list(control = Weka_control(K = 1, A = list('LinearNNSearch', A = 'EuclideanDistance')))),
+                  learner('IBk', list(control = Weka_control(K = 3, A = list('LinearNNSearch', A = 'EuclideanDistance')))),
+                  learner('IBk', list(control = Weka_control(K = 5, A = list('LinearNNSearch', A = 'EuclideanDistance')))),
+                  learner('IBk', list(control = Weka_control(K = 3, A = list('LinearNNSearch', A = 'ManhattanDistance')))),
+                  learner('IBk', list(control = Weka_control(K = 5, A = list('LinearNNSearch', A = 'ManhattanDistance')))),
+                  learner('Naive', list(control = Weka_control())),
+                  learner('Naive', list(control = Weka_control(K = TRUE))),
+                  learner('Naive', list(control = Weka_control(D = TRUE)))
               )
   ensemble <- c()
-  extention <<- ".csv"
-  label <<- "class"
-  form <<- as.formula("class ~ .")
-  funcType <<- rep("probability", 31)
+  extention <<- '.csv'
+  label <<- 'class'
+  form <<- as.formula('class ~ .')
+  funcType <<- rep('probability', 31)
 }
 
 euclidian_distance <- function(a, b) {
@@ -144,7 +144,7 @@ getRealId <- function(dataset, sup) {
 }
 
 knora <- function(ensemble, data_labelled, data_classes, data_unlabelled,
-                  type = "E", k = 7) {
+                  type = 'E', k = 7) {
   
   return(new_ensemble)
 }
@@ -239,8 +239,8 @@ updateMemory <- function(probPreds, memo, method) {
     for (y in 1:length(distClass)) {
       if (as.character(probPreds[x, 1]) == as.character(distClass[y])) {
         switch(method,
-               "1" = value <- probPreds[x, 2],
-               "2" = value <- 1
+               '1' = value <- probPreds[x, 2],
+               '2' = value <- 1
         )
         memo[id, distClass[y]] <- memo[id, distClass[y]] + value
         break

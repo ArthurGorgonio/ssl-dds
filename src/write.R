@@ -2,7 +2,7 @@
 #'
 #' @usage write_archive (title, prefix, content, dataName, modelName, acc, f1,
 #'   preci, recall, begin, end, samplesPerIt, append = T, row = F, col = F,
-#'   sep = " ")
+#'   sep = ' ')
 #'
 #' @param title The title of the file.
 #' @param prefix The directory where the file be storage.
@@ -22,76 +22,76 @@
 #'   (Default TRUE).
 #' @param row An optional parameter to write rows in the file. (Default FALSE).
 #' @param col An optional parameter to write cols in the file. (Default FALSE).
-#' @param sep An optional parameter to use in paste. (Default " " Single space).
+#' @param sep An optional parameter to use in paste. (Default ' ' Single space).
 #'
 writeArchive <- function(title, prefix, dataName, modelName, acc, f1, preci,
                          recall, begin, end, it, append = T, row = F, col = F,
-                         sep = " ") {
+                         sep = ' ') {
   acc <- round(acc, 4)
   f1 <- round(f1, 4)
   preci <- round(preci, 4)
   recall <- round(recall, 4)
-  pattern <- "%d/%m/%Y %X"
-  filePath <- paste(prefix, title, sep = "/")
-  separ <- paste(rep("-", 80), collapse = "")
-  metrics <- "\taccura\terror\tfmeasu\tprecis\trecall"
-  dbName <- paste("@DATASET:", dataName)
-  modelName <- paste("@Model:", modelName, sep = "\t")
-  folds <- "@Folds\t: 10"
+  pattern <- '%d/%m/%Y %X'
+  filePath <- paste(prefix, title, sep = '/')
+  separ <- paste(rep('-', 80), collapse = '')
+  metrics <- '\taccura\terror\tfmeasu\tprecis\trecall'
+  dbName <- paste('@DATASET:', dataName)
+  modelName <- paste('@Model:', modelName, sep = '\t')
+  folds <- '@Folds\t: 10'
   headers <- paste(separ, it, separ, dbName, folds, modelName, separ, metrics,
-                   separ, sep = "\n")
+                   separ, sep = '\n')
   line <- c()
   for (i in 1:10) {
     line <- paste(line,
-                  paste("fold", i, ":\t", round(acc[i], 4), " ",
-                        round(1 - acc[i], 4), " ", round(f1[i], 4), " ",
-                        round(preci[i], 4), " ", round(recall[i], 4), sep = ""),
-                  sep = "\n")
+                  paste('fold', i, ':\t', round(acc[i], 4), ' ',
+                        round(1 - acc[i], 4), ' ', round(f1[i], 4), ' ',
+                        round(preci[i], 4), ' ', round(recall[i], 4), sep = ''),
+                  sep = '\n')
   }
-  allMeans <- paste("AVERAG\t", round(mean(acc), 4), " ",
-                    round(mean(round(1 - acc, 4)), 4), " ",
-                    round(mean(f1), 4), " ", round(mean(preci), 4), " ",
-                    round(mean(recall), 4), sep = "")
-  line <- paste(line, separ, allMeans, separ, sep = "\n")
-  time <- paste("BEGIN:\t", format(begin, pattern), "\nEND:\t",
-                format(end, pattern), "\n\nTIME ELAPSED: ",
-                round(end - begin, 4), " seconds\n", separ, sep = "")
-  content <- paste(headers, line, time, sep = "\n")
+  allMeans <- paste('AVERAG\t', round(mean(acc), 4), ' ',
+                    round(mean(round(1 - acc, 4)), 4), ' ',
+                    round(mean(f1), 4), ' ', round(mean(preci), 4), ' ',
+                    round(mean(recall), 4), sep = '')
+  line <- paste(line, separ, allMeans, separ, sep = '\n')
+  time <- paste('BEGIN:\t', format(begin, pattern), '\nEND:\t',
+                format(end, pattern), '\n\nTIME ELAPSED: ',
+                round(end - begin, 4), ' seconds\n', separ, sep = '')
+  content <- paste(headers, line, time, sep = '\n')
   write(content, filePath, append = append, sep = sep)
 }
 
 headerDetailedOutputEnsemble_debug <- function(title, prefix, dataName,
                                                modelName, append = T, row = F,
-                                               col = F, sep = " ") {
-  pattern <- "%d/%m/%Y %X"
-  details <- paste("In each iteration, info means:",
-  "info01: ensemble size;",
-  "info02: ensemble hits;",
-  "info03: ensemble errors;",
-  "info04: ensemble Acc;",
-  "info05: ensemble F-Measure;",
-  "info06: ensemble kappa statistics;",
-  "info07: ensemble weight hits;",
-  "info08: ensemble weight errors;",
-  "info09: ensemble Acc Weighted;",
-  "info10: ensemble F-Measure Weighted;",
-  "info11: ensemble kappa statistics;",
-  "info12: ensemble detect a drift;",
-  "info13: Total processed instances;",
-  "info14: Elapsed iteration time.",
-  sep = "\n")
-  filePath <- paste(prefix, title, sep = "/")
-  separ <- paste(rep("-", 80), collapse = "")
-  metrics <- format(c("info01", "info02", "info03", "info04", "info05", "info06",
-                      "info07", "info08", "info09", "info10", "info11", "info12",
-                      "info13", "info14",),
+                                               col = F, sep = ' ') {
+  pattern <- '%d/%m/%Y %X'
+  details <- paste('In each iteration, info means:',
+  'info01: ensemble size;',
+  'info02: ensemble hits;',
+  'info03: ensemble errors;',
+  'info04: ensemble Acc;',
+  'info05: ensemble F-Measure;',
+  'info06: ensemble kappa statistics;',
+  'info07: ensemble weight hits;',
+  'info08: ensemble weight errors;',
+  'info09: ensemble Acc Weighted;',
+  'info10: ensemble F-Measure Weighted;',
+  'info11: ensemble kappa statistics;',
+  'info12: ensemble detect a drift;',
+  'info13: Total processed instances;',
+  'info14: Elapsed iteration time.',
+  sep = '\n')
+  filePath <- paste(prefix, title, sep = '/')
+  separ <- paste(rep('-', 80), collapse = '')
+  metrics <- format(c('info01', 'info02', 'info03', 'info04', 'info05', 'info06',
+                      'info07', 'info08', 'info09', 'info10', 'info11', 'info12',
+                      'info13', 'info14',),
                    justify = 'r', width = 11)
-  dbName <- paste("@DATASET:", dataName)
-  modelName <- paste("@Model:", modelName, sep = "\t")
+  dbName <- paste('@DATASET:', dataName)
+  modelName <- paste('@Model:', modelName, sep = '\t')
   headers <- paste(separ, dbName, modelName, separ, details,
-                   separ, sep = "\n")
+                   separ, sep = '\n')
   write(headers, filePath, append = append, sep = sep)
-  cat(metrics, "\n", file = filePath, append = append)
+  cat(metrics, '\n', file = filePath, append = append)
 }
 
 detailedOutputEnsemble_debug <- function(title, prefix, size, hits, error, acc,
@@ -99,55 +99,55 @@ detailedOutputEnsemble_debug <- function(title, prefix, size, hits, error, acc,
                                          acc_weight, fscore_weight, kappa_weight,
                                          detect_drift, processed, enlapsed_it,
                                          append = T, row = F, col = F,
-                                         sep = " ") {
-  pattern <- "%d/%m/%Y %X"
-  filePath <- paste(prefix, title, sep = "/")
+                                         sep = ' ') {
+  pattern <- '%d/%m/%Y %X'
+  filePath <- paste(prefix, title, sep = '/')
   content <- format(c(size, hits, error, round(acc, 3), round(fscore, 3),
                       round(kappa, 3), hits_weight, error_weight,
                       round(acc_weight, 3), round(fscore_weight, 3),
                       round(kappa_weight, 3), detect_drift, processed,
-                      paste(round(enlapsed_it, 3), "min", sep = " ")), 
-                    justify = "right", width = 11, scientific = F)
-  cat(content, "\n", file = filePath, append = append)
+                      paste(round(enlapsed_it, 3), 'min', sep = ' ')), 
+                    justify = 'right', width = 11, scientific = F)
+  cat(content, '\n', file = filePath, append = append)
 }
 
 
 headerDetailedOutputEnsemble <- function(title, prefix, dataName, modelName,
                                          append = T, row = F, col = F,
-                                         sep = " ") {
-  pattern <- "%d/%m/%Y %X"
-  details <- paste("In each iteration, info means:",
-                   "info01: ensemble size;",
-                   "info02: ensemble hits;",
-                   "info03: ensemble errors;",
-                   "info04: ensemble Acc;",
-                   "info05: ensemble F-Measure;",
-                   "info06: ensemble kappa statistics;",
-                   "info07: ensemble detect a drift;",
-                   "info08: Total processed instances;",
-                   "info09: Elapsed iteration time.",
-                   sep = "\n")
-  filePath <- paste(prefix, title, sep = "/")
-  separ <- paste(rep("-", 80), collapse = "")
-  metrics <- format(c("info01", "info02", "info03", "info04", "info05", "info06",
-                      "info07", "info08", "info09"), justify = 'r', width = 11)
-  dbName <- paste("@DATASET:", dataName)
-  modelName <- paste("@Model:", modelName, sep = "\t")
+                                         sep = ' ') {
+  pattern <- '%d/%m/%Y %X'
+  details <- paste('In each iteration, info means:',
+                   'info01: ensemble size;',
+                   'info02: ensemble hits;',
+                   'info03: ensemble errors;',
+                   'info04: ensemble Acc;',
+                   'info05: ensemble F-Measure;',
+                   'info06: ensemble kappa statistics;',
+                   'info07: ensemble detect a drift;',
+                   'info08: Total processed instances;',
+                   'info09: Elapsed iteration time.',
+                   sep = '\n')
+  filePath <- paste(prefix, title, sep = '/')
+  separ <- paste(rep('-', 80), collapse = '')
+  metrics <- format(c('info01', 'info02', 'info03', 'info04', 'info05', 'info06',
+                      'info07', 'info08', 'info09'), justify = 'r', width = 11)
+  dbName <- paste('@DATASET:', dataName)
+  modelName <- paste('@Model:', modelName, sep = '\t')
   headers <- paste(separ, dbName, modelName, separ, details,
-                   separ, sep = "\n")
+                   separ, sep = '\n')
   write(headers, filePath, append = append, sep = sep)
-  cat(metrics, "\n", file = filePath, append = append)
+  cat(metrics, '\n', file = filePath, append = append)
 }
 
 detailedOutputEnsemble <- function(title, prefix, size, hits, error, acc,
                                    fscore, kappa, detect_drift, processed,
                                    enlapsed_it, append = T, row = F, col = F,
-                                   sep = " ") {
-  pattern <- "%d/%m/%Y %X"
-  filePath <- paste(prefix, title, sep = "/")
+                                   sep = ' ') {
+  pattern <- '%d/%m/%Y %X'
+  filePath <- paste(prefix, title, sep = '/')
   content <- format(c(size, hits, error, round(acc, 3), round(fscore, 3),
                       round(kappa, 3), detect_drift, processed,
-                      paste(round(enlapsed_it, 3), "min", sep = " ")), 
-                    justify = "right", width = 11, scientific = F)
-  cat(content, "\n", file = filePath, append = append)
+                      paste(round(enlapsed_it, 3), 'min', sep = ' ')), 
+                    justify = 'right', width = 11, scientific = F)
+  cat(content, '\n', file = filePath, append = append)
 }

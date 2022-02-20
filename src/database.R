@@ -16,8 +16,8 @@ getBatch <- function(database, n) {
 #'
 #' @return The data set loaded in memory.
 #'
-getDatabase <- function(datasetName, path = "../datasets") {
-  database <- read.arff(paste(path, datasetName, sep = "/"))
+getDatabase <- function(datasetName, path = '../datasets') {
+  database <- read.arff(paste(path, datasetName, sep = '/'))
   return(database)
 }
 
@@ -30,7 +30,7 @@ getDatabase <- function(datasetName, path = "../datasets") {
 #'
 #' @return An object of the `datastream_dataframe` class.
 #'
-readData <- function(dbName, path = "../datasets") {
+readData <- function(dbName, path = '../datasets') {
   data <- datastream_dataframe(factorise(getDatabase(dbName, path)))
   return(data)
 }

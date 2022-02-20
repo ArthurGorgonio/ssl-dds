@@ -4,17 +4,17 @@
 #' Luis Torgo, Jan 2009
 #' ==============================================================
 #' 
-setClass("learner", representation(func="character", pars="list"))
+setClass('learner', representation(func='character', pars='list'))
 
 #' --------------------------------------------------------------
 #' constructor function
 learner <- function(func, pars=list()) {
-  if (missing(func)) stop("\nYou need to provide a function name.\n")
-  new("learner", func=func, pars=pars)
+  if (missing(func)) stop('\nYou need to provide a function name.\n')
+  new('learner', func=func, pars=pars)
 }
 
 # show
-setMethod("show", "learner", function(object) {
+setMethod('show', 'learner', function(object) {
   cat('\nLearner:: ',deparse(object@func),'\n\nParameter values\n')
   for(n in names(object@pars))
     cat('\t',n,' = ',deparse(object@pars[[n]]),'\n')
@@ -33,7 +33,7 @@ setMethod("show", "learner", function(object) {
 #' runLearner(l,medv ~ ., Boston)
 #'
 runLearner <- function(l,...) {
-  if (!inherits(l,'learner')) stop(l,' is not of class "learner".')
+  if (!inherits(l,'learner')) stop(l,' is not of class 'learner'.')
   do.call(l@func,c(list(...),l@pars))
 }
 
@@ -102,9 +102,9 @@ measureEnsemble <- function(ensemble, dataOracle) {
 #'
 #' @return A dataset set predicted using the model.
 #'
-predictClass <- function(model, testDB, type = "class") {
+predictClass <- function(model, testDB, type = 'class') {
   colunsNames <- colnames(testDB)
-  dbClassOff <- match("class", colunsNames)
+  dbClassOff <- match('class', colunsNames)
   testData <- testDB[, -dbClassOff]
   prediction <- predict(model, testData, type)
   return(prediction)
@@ -136,11 +136,11 @@ predictEnsemble <- function(ensemble, ensemble_weights, oracleDB, all_levels) {
 
 
 
-predictEnsembleConfidence <- function(ensemble, ensemble_weights, oracleDB,
-                                      all_levels) {
+predictEnsembleConfidence <- function(ensemble, weights, oracleDB, all_levels) {
   classPred <- generateMemory(oracleDB, length(all_levels), all_levels)
   for (cl in 1:length(ensemble)) {
-    pred <- predictClass(ensemble[[cl]], oracleDB, "probability") * ensemble_weights[cl]
+    member <- ensemble[[cl]]
+    pred <- predictClass(member, oracleDB, 'probability') * weights[cl]
     pos <- match(colnames(pred),colnames(classPred))
     for(j in 1:length(pos)){
       classPred[,pos[j]] <- classPred[,pos[j]] + pred[,j]
@@ -188,15 +188,15 @@ swapEnsemble <- function(ensemble, dataOracle, oracle) {
 }
 
 
-weightEnsemble <- function(ensemble, oracleDB, all_levels, type = "acc") {
+weightEnsemble <- function(ensemble, oracleDB, all_levels, type = 'acc') {
   classfiers_weights <- c()
   for (cl in ensemble) {
     cm <- confusionMatrix(cl, oracleDB)
     cm <- fixCM(cm, all_levels)
     switch (type,
-      "acc" = value <- getAcc(cm),
-      "fmeasure" = value <- fmeasure(cm),
-      "kappa" = value <- kappa(cm)
+      'acc' = value <- getAcc(cm),
+      'fmeasure' = value <- fmeasure(cm),
+      'kappa' = value <- kappa(cm)
     )
     classfiers_weights <- c(classfiers_weights, value)
   }

@@ -26,8 +26,8 @@ atribArgs <- function(arguments, databases) {
               params$seeds <- param
             },
             '-h' = {
-              cat("-s to start data set [1-11]\n-e to end data set [1-11]",
-                  "-l to length batch\n-r to ratio\n-d to seed!!!")
+              cat('-s to start data set [1-11]\n-e to end data set [1-11]',
+                  '-l to length batch\n-r to ratio\n-d to seed!!!')
             }
     )
     arg <- arg + 2
@@ -44,12 +44,12 @@ atribArgs <- function(arguments, databases) {
 #' RMOA -> API for MOA software for classifiers 
 #' rminer -> Holdout function 
 installNeedPacks <- function() {
-  # packages <- c(, "DMwR", "RWeka", , "PMCMRplus", "ssc",
-                # "RMOA", "foreign")
-  packages <- c("plyr", "PMCMRplus", "RWeka", "RMOA", "rminer", "RPushbullet",
-                "jsonlite")
-  if (!require("BiocManager")) {
-    install.packages("BiocManager")
+  # packages <- c(, 'DMwR', 'RWeka', , 'PMCMRplus', 'ssc',
+                # 'RMOA', 'foreign')
+  packages <- c('plyr', 'PMCMRplus', 'RWeka', 'RMOA', 'rminer', 'RPushbullet',
+                'jsonlite', 'R6', 'stringr')
+  if (!require('BiocManager')) {
+    install.packages('BiocManager')
   }
   for (pack in packages) {
     if (!require(pack, character.only = TRUE)) {
@@ -61,6 +61,6 @@ installNeedPacks <- function() {
 
 installNeedPacks()
 
-token <- fromJSON("../token.txt")
+token <- fromJSON('../token.txt')
 
 pbSetup(token$key, defdev = 1)

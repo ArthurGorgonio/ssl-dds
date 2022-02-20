@@ -19,7 +19,7 @@ basicCheck <- function(data1It, dataXIt, confValue, memo, comp) {
     if (letCheck(data1It, dataXIt, confValue, lvls[index], index, comp)) {
       pos <- pos + 1
       xId[pos] <- as.numeric(dataXIt$id[index])
-      if ((comp == "1") || (comp == "2")) {
+      if ((comp == '1') || (comp == '2')) {
         yCl[pos] <- as.character(dataXIt$cl[index])
       } else {
         yCl[pos] <- as.character(searchClass(xId[pos], memo))
@@ -166,7 +166,7 @@ flexConC <- function(learner, predFunc, classDist, initialAcc, method, data,
   trainSetIds <- c()
   oldTrainSetIds <- c()
   # FlexCon-C1 only
-  if ((method == "1") || (method == "2")) {
+  if ((method == '1') || (method == '2')) {
     memo <- generateMemory(data, nClass, levels(data$class[sup]))
   }
   addRotSuperv <- FALSE
@@ -176,7 +176,7 @@ flexConC <- function(learner, predFunc, classDist, initialAcc, method, data,
     model <- generateModel(learner, form, data[sup, ])
     probPreds <- generateProbPreds(model, data[-sup, ], predFunc)
     if (it > 1) {
-      if (method != "3") {
+      if (method != '3') {
         memo <- updateMemory(probPreds, memo, method)
         newSamples <- flexConC1(probPreds1It, probPreds, confValue, memo)
       } else {
@@ -223,16 +223,16 @@ flexConC <- function(learner, predFunc, classDist, initialAcc, method, data,
 #' @return The ids of the selected samples by insetion rules.
 #'
 flexConC1 <- function(probPreds1It, probPreds, confValue, memo) {
-  labeled <- basicCheck(probPreds1It, probPreds, confValue, memo, "1")
+  labeled <- basicCheck(probPreds1It, probPreds, confValue, memo, '1')
   lenLabeled <- length(labeled$id)
   if (lenLabeled == 0) {
-    labeled <- basicCheck(probPreds1It, probPreds, confValue, memo, "2")
+    labeled <- basicCheck(probPreds1It, probPreds, confValue, memo, '2')
     lenLabeled <- length(labeled$id)
     if (lenLabeled == 0) {
-      labeled <- basicCheck(probPreds1It, probPreds, confValue, memo, "3")
+      labeled <- basicCheck(probPreds1It, probPreds, confValue, memo, '3')
       lenLabeled <- length(labeled$id)
       if (lenLabeled == 0) {
-        labeled <- basicCheck(probPreds1It, probPreds, confValue, memo, "4")
+        labeled <- basicCheck(probPreds1It, probPreds, confValue, memo, '4')
       }
     }
   }
@@ -277,16 +277,16 @@ flexConC2 <- function(probPreds, probPredsSuperv, confValue) {
 #'
 letCheck <- function(data1It, dataXIt, confValue, index1It, index, comp) {
   switch(comp,
-         "1" = {
+         '1' = {
            return(classCheck(data1It, dataXIt, confValue, index1It, index))
          },
-         "2" = {
+         '2' = {
            return(confCheck(data1It, dataXIt, confValue, index1It, index))
          },
-         "3" = {
+         '3' = {
            return(diffClassCheck(data1It, dataXIt, confValue, index1It, index))
          },
-         "4" = {
+         '4' = {
            return(diffConfCheck(data1It, dataXIt, confValue, index1It, index))
          }
   )
