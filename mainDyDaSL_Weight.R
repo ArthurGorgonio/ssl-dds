@@ -30,7 +30,7 @@ for (scri in scripts) {
 }
 path <- "../results/detailed"
 rm(scripts, scri)
-databases <- list.files(path = "../datasets/")[3]
+databases <- list.files(path = "../datasets/")
 myParam <- atribArgs(args, databases)
 ratios <- myParam$ratios
 lengthBatch <- myParam$lengthBatch
@@ -97,24 +97,13 @@ defines()
             if (ensembleAcc < acceptabelAcc * 0.99) {
               detect_drift <- TRUE
               train_sucess <- FALSE
-              while (!train_sucess) {
-                typeClassifier <- shuffleClassify(1)
-                learner <- baseClassifiers[[typeClassifier]]
-                tryCatch({
-                  initialAcc <- supAcc(learner, data[batchLabeled, ])
-                  oracle <- flexConC(learner, funcType[typeClassifier], classDist,
-                                    initialAcc, "1", data, batchLabeled,
-                                    learner@func)
-                  train_sucess <- TRUE
-                }, error = function(e) {
-                  msg <- paste("Classificador: ", learner@func, "\nAcc: ", initialAcc,
-                               "\nLabels: ", data$class[batchLabeled], sep = "")
-                  pbPost("note", "Experiment Status - Train Failed", msg)
-                  cat("Stop!")
-                  print(data$class[batchLabeled])
-                  Sys.sleep(5)
-                })
-              }
+              typeClassifier <- shuffleClassify(1)
+              learner <- baseClassifiers[[typeClassifier]]
+              initialAcc <- supAcc(learner, data[batchLabeled, ])
+              oracle <- flexConC(learner, funcType[typeClassifier], classDist,
+                                initialAcc, "1", data, batchLabeled,
+                                learner@func)
+              train_sucess <- TRUE
               oraclePred <- predictClass(oracle, batch)
               ensemble <- swapEnsemble(ensemble, data, oracle)
               calculate <- TRUE
