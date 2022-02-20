@@ -2,9 +2,11 @@
 .Rhistory
 .RData
 .Ruserdata
-.png
+*.png
 .sh
-results/
+results/+*.txt
 .idea/
 *.csv
 *.txt
+plots/.ipynb_checkpoints/*
+not-used/
