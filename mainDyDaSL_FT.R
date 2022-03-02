@@ -24,7 +24,12 @@ shuffleClassify <- function(size) {
 
 
 setWorkspace()
-scripts <- list.files()
+source('utils.R')
+installNeedPacks()
+token <- fromJSON('../token.txt')
+pbSetup(token$key, defdev = 1)
+
+scripts <- list.files(pattern='*.R', recursive=T)
 for (scri in scripts) {
   source(scri)
 }
@@ -48,10 +53,6 @@ for (dataLength in lengthBatch) {
     title <- paste("test", fileName, sep = "")
     headerDetailedOutputEnsemble(title, path, dataName, "DyDaSL - FT")
     cat(dataName)
-    epoch <- 0
-    calculate <- TRUE
-    epoch <- epoch + 1
-    cat("\n\n\nRODADA: ", epoch, "\n\n\n\n")
     set.seed(19)
     ensemble <- list()
     ensemble_weights <- c()
@@ -95,9 +96,9 @@ for (dataLength in lengthBatch) {
             oracle <- flexConC(learner, funcType[typeClassifier], classDist,
                                initialAcc, "1", data, batchLabeled,
                                learner@func)
-            oraclePred <- predictClass(oracle, batch)
-            ensemble <- swapEnsemble(ensemble, data, oracle)
-            calculate <- TRUE
+            oracle_data <- cbind(batch[, -match(label, colnames(batch))],
+                                 class=predictClass(oracle, batch))
+            ensemble <- swapEnsemble(ensemble, oracle_data, oracle, all_classes)
           }
         } else {
           for (i in typeClassifier) {

@@ -58,9 +58,3 @@ installNeedPacks <- function() {
     library(pack, character.only = TRUE, verbose = F)
   }
 }
-
-installNeedPacks()
-
-token <- fromJSON('../token.txt')
-
-pbSetup(token$key, defdev = 1)

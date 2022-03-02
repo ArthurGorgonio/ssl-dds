@@ -24,7 +24,12 @@ shuffleClassify <- function(size) {
 
 
 setWorkspace()
-scripts <- list.files()
+source('utils.R')
+installNeedPacks()
+token <- fromJSON('../token.txt')
+pbSetup(token$key, defdev = 1)
+
+scripts <- list.files(pattern='*.R', recursive=T)
 for (scri in scripts) {
   source(scri)
 }
@@ -48,10 +53,6 @@ for (dataLength in lengthBatch) {
     title <- paste("test", fileName, sep = "")
     headerDetailedOutputEnsemble(title, path, dataName, "DyDaSL - CPSSDS")
     cat(dataName)
-    epoch <- 0
-    calculate <- TRUE
-    epoch <- epoch + 1
-    cat("\n\n\nRODADA: ", epoch, "\n\n\n\n")
     set.seed(19)
     ensemble <- list()
     ensemble_weights <- c()
@@ -90,29 +91,15 @@ for (dataLength in lengthBatch) {
           cpssds$get_chunk(data$class[batchLabeled])
           if (cpssds$detect_drift()) {
             detect_drift <- TRUE
-            train_sucess <- FALSE
-            while (!train_sucess) {
-              typeClassifier <- shuffleClassify(1)
-              learner <- baseClassifiers[[typeClassifier]]
-              tryCatch({
-                initialAcc <- supAcc(learner, data[batchLabeled, ])
-                oracle <- flexConC(learner, funcType[typeClassifier], classDist,
-                                   initialAcc, "1", data, batchLabeled,
-                                   learner@func)
-                train_sucess <- TRUE
-              }, error = function(e) {
-                cat("FAIL TRAIN - CLASSIFIER: ", learner@func, "\nAcc: ", initialAcc,
-                    "\nLabels: ", data$class[batchLabeled])
-                msg <- paste("Classificador: ", learner@func, "\nAcc: ", initialAcc,
-                             "\nLabels: ", data$class[batchLabeled], sep = "")
-                pbPost("note", "Experiment Status - Train Failed", msg)
-                cat("Stop!")
-                print(data$class[batchLabeled])
-                Sys.sleep(5)
-              })
-            }
-            oraclePred <- predictClass(oracle, batch)
-            ensemble <- swapEnsemble(ensemble, data, oracle)
+            typeClassifier <- shuffleClassify(1)
+            learner <- baseClassifiers[[typeClassifier]]
+            initialAcc <- supAcc(learner, data[batchLabeled, ])
+            oracle <- flexConC(learner, funcType[typeClassifier], classDist,
+                               initialAcc, "1", data, batchLabeled,
+                               learner@func)
+            oracle_data <- cbind(batch[, -match(label, colnames(batch))],
+                                 class=predictClass(oracle, batch))
+            ensemble <- swapEnsemble(ensemble, oracle_data, oracle, all_classes)
           }
         } else {
           for (i in typeClassifier) {
@@ -124,7 +111,7 @@ for (dataLength in lengthBatch) {
             ensemble <- addingEnsemble(ensemble, model)
           } # END FOR
           ensemble_weights <- rep(1, length(ensemble))
-          cpssds <- CPSSDS()
+          cpssds <- CPSSDS$new()
           cpssds$get_chunk(data$class[batchLabeled])
         } # END ELSE
       } # END ELSE
