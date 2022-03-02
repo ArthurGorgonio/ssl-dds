@@ -209,6 +209,7 @@ flexConC <- function(learner, predFunc, classDist, initialAcc, method, data,
       confValue <- max(probPreds[, 2])
     }
   }
+  model <- generateModel(learner, form, data[sup, ])
   return(model)
 }
 

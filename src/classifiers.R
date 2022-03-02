@@ -33,7 +33,7 @@ setMethod('show', 'learner', function(object) {
 #' runLearner(l,medv ~ ., Boston)
 #'
 runLearner <- function(l,...) {
-  if (!inherits(l,'learner')) stop(l,' is not of class 'learner'.')
+  if (!inherits(l,'learner')) stop(l,' is not of class learner.')
   do.call(l@func,c(list(...),l@pars))
 }
 
@@ -85,10 +85,11 @@ generatePredict <- function(model, data, funcType) {
 #'
 #' @return A vector with the accuracy per classifier.
 #'
-measureEnsemble <- function(ensemble, dataOracle) {
+measureEnsemble <- function(ensemble, oracle_data, all_classes) {
   accPerClassifier <- c()
   for (classi in ensemble) {
-    cm <- confusionMatrix(classi, dataOracle)
+    cm <- confusionMatrix(classi, oracle_data)
+    cm <- fixCM(cm, all_classes)
     acc <- getAcc(cm)
     accPerClassifier <- c(accPerClassifier, acc)
   }
@@ -172,7 +173,7 @@ removingEnsemble <- function(ensemble, dataOracle) {
   return(ensemble[-which.min(classifiers)])
 }
 
-#' @description Select the worst model of the ensemble and swap with best oracle.
+#' @description Select the worst model of the ensemble and swap with the oracle.
 #'
 #' @param ensemble The ensemble.
 #' @param dataOracle The current labeled batch of the data stream.
@@ -181,9 +182,12 @@ removingEnsemble <- function(ensemble, dataOracle) {
 #' @return A new `ensemble` with the worst model removed and adding the best
 #'  oracle in the ensemble.
 #'
-swapEnsemble <- function(ensemble, dataOracle, oracle) {
-  ensemble <- removingEnsemble(ensemble, dataOracle)
-  ensemble <- addingEnsemble(ensemble, oracle)
+swapEnsemble <- function(ensemble, oracle_data, oracle, all_classes) {
+  classifiers <- measureEnsemble(ensemble, oracle_data, all_classes)
+  min_acc <- which(min(classifiers) == classifiers)
+  for (cl in min_acc) {
+    ensemble[[cl]] <- oracle
+  }
   return(ensemble)
 }
 
