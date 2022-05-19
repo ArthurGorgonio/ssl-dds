@@ -79,18 +79,11 @@ for (dataLength in lengthBatch) {
         classDist <- ddply(data[batchLabeled, ], ~class, summarise,
                            samplesClass = length(class))
         if (it > 1) {
-          # ensemble <- knora(valid_base_classifier, data[batchLabeled], 
-          # sort(levels(batch$class)))
           ensemblePred <- predictEnsemble(ensemble, ensemble_weights,
-                                          data[batchLabeled, ],
-                                          all_classes)
+                                          data[batchLabeled, ], all_classes)
           for (instance in 1:length(data$class[batchLabeled])) {
-            y_pred <- getAcc(
-                        fixCM(
-                          table(data$class[batchLabeled][instance],
-                                ensemblePred[instance]), all_classes
-                        )
-                      )
+            y_pred <- getAcc(fixCM(table(data$class[batchLabeled][instance],
+                                          ensemblePred[instance]), all_classes))
             if (hinkley$set_input(y_pred)) {
               break
             }
